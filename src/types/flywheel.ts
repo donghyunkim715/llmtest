@@ -19,6 +19,21 @@ export type InsightType =
   | 'all_fail'
   | 'ok';
 
+export interface ModelRubricScores {
+  intentAccuracy: number; // 1 to 5
+  toolPrecision: number; // 1 to 5
+  parameterCompleteness: number; // 1 to 5
+  naturalness: number; // 1 to 5
+  overall?: number;
+}
+
+export interface AspectVotes {
+  intent: 'A' | 'B' | 'C' | 'D';
+  toolCalls: 'A' | 'B' | 'C' | 'D';
+  parameters: 'A' | 'B' | 'C' | 'D';
+  responseText: 'A' | 'B' | 'C' | 'D';
+}
+
 export interface InferenceCandidate {
   id: 'A' | 'B' | 'C' | 'D';
   label: string;
@@ -33,6 +48,13 @@ export interface InferenceCandidate {
   outputJson: string;
   explanation: string;
   isRecommended?: boolean;
+  extractedIntents?: string[];
+  naturalLanguageResponse?: string;
+  thoughtProcess?: string;
+  pros?: string[];
+  cons?: string[];
+  rubricScores?: ModelRubricScores;
+  votesCount?: number;
 }
 
 export interface ReviewDecision {
@@ -40,6 +62,8 @@ export interface ReviewDecision {
   action: 'adopt' | 'fix' | 'drop' | 'escalate';
   editedPayload?: string;
   rationale: string;
+  aspectVotes?: AspectVotes;
+  candidateScores?: Record<'A' | 'B' | 'C' | 'D', ModelRubricScores>;
   reviewerId: string;
   reviewerName: string;
   reviewedAt: string;
@@ -53,6 +77,15 @@ export interface ApprovalDecision {
   approvedAt: string;
 }
 
+export interface VehicleTelemetryContext {
+  speedKmh: number;
+  indoorTempC: number;
+  windowsOpenPercent: number;
+  passengerZones: string[];
+  navCurrentDestination?: string;
+  mediaStatus?: string;
+}
+
 export interface StageRecord {
   id: string;
   hash: string;
@@ -61,6 +94,8 @@ export interface StageRecord {
   systemPrompt: string;
   priorTurns: Array<{ role: 'user' | 'assistant'; text: string }>;
   currentTargetQuery: string;
+  vehicleContext?: VehicleTelemetryContext;
+  groundTruthExpectation?: string[];
   stage: PipelineStage;
   category: string;
   insightType: InsightType;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserProfile, StageRecord, BatchManifest } from './types/flywheel';
+import { UserProfile, StageRecord, BatchManifest, AspectVotes, ModelRubricScores } from './types/flywheel';
 import { INITIAL_USERS, INITIAL_RECORDS, INITIAL_BATCHES } from './data/mockFlywheelData';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
@@ -30,18 +30,41 @@ export default function App() {
     selectedCandidateId: 'A' | 'B' | 'C' | 'D',
     action: 'adopt' | 'fix' | 'drop' | 'escalate',
     rationale: string,
-    editedPayload?: string
+    editedPayload?: string,
+    aspectVotes?: AspectVotes,
+    candidateScores?: Record<'A' | 'B' | 'C' | 'D', ModelRubricScores>
   ) => {
     setRecords((prev) =>
       prev.map((r) => {
         if (r.id === recordId) {
+          // Increment vote count for selected candidate
+          const updatedCandidates = r.candidates.map((cand) => {
+            if (cand.id === selectedCandidateId) {
+              return {
+                ...cand,
+                votesCount: (cand.votesCount || 0) + 1,
+                rubricScores: candidateScores?.[cand.id] || cand.rubricScores,
+              };
+            }
+            if (candidateScores?.[cand.id]) {
+              return {
+                ...cand,
+                rubricScores: candidateScores[cand.id],
+              };
+            }
+            return cand;
+          });
+
           return {
             ...r,
+            candidates: updatedCandidates,
             reviewDecision: {
               selectedCandidateId,
               action,
               rationale,
               editedPayload,
+              aspectVotes,
+              candidateScores,
               reviewerId: currentUser.id,
               reviewerName: currentUser.name,
               reviewedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),

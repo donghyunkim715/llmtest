@@ -241,6 +241,42 @@ export const ApprovalWorkbenchView: React.FC<ApprovalWorkbenchProps> = ({
                   </div>
                 </div>
 
+                {/* Aspect-level Votes Breakdown Display */}
+                {selectedRecord.reviewDecision?.aspectVotes && (
+                  <div className="bg-[#0a0e16] p-2.5 rounded border border-[#4cd7f6]/30 flex flex-col gap-1.5 font-mono text-xs">
+                    <span className="text-[0.625rem] text-[#4cd7f6] uppercase font-bold flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[0.875rem]">ballot</span>
+                      1차 검수자 부문별 정답 투표 내역 (Aspect Attribution)
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div className="bg-[#181c24] px-2 py-1 rounded border border-[#262a33]">
+                        <span className="text-[#908fa0] text-[0.625rem] block">의도 파악</span>
+                        <span className="text-[#4cd7f6] font-bold">
+                          후보 [{selectedRecord.reviewDecision.aspectVotes.intent}]
+                        </span>
+                      </div>
+                      <div className="bg-[#181c24] px-2 py-1 rounded border border-[#262a33]">
+                        <span className="text-[#908fa0] text-[0.625rem] block">도구 호출</span>
+                        <span className="text-[#4edea3] font-bold">
+                          후보 [{selectedRecord.reviewDecision.aspectVotes.toolCalls}]
+                        </span>
+                      </div>
+                      <div className="bg-[#181c24] px-2 py-1 rounded border border-[#262a33]">
+                        <span className="text-[#908fa0] text-[0.625rem] block">파라미터</span>
+                        <span className="text-[#c0c1ff] font-bold">
+                          후보 [{selectedRecord.reviewDecision.aspectVotes.parameters}]
+                        </span>
+                      </div>
+                      <div className="bg-[#181c24] px-2 py-1 rounded border border-[#262a33]">
+                        <span className="text-[#908fa0] text-[0.625rem] block">음성 발화</span>
+                        <span className="text-[#ffddb8] font-bold">
+                          후보 [{selectedRecord.reviewDecision.aspectVotes.responseText}]
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="bg-[#0a0e16] p-2.5 rounded border border-[#262a33] text-xs text-[#c7c4d7] leading-relaxed">
                   <span className="font-mono text-[0.625rem] text-[#908fa0] block mb-0.5">라벨러 검수 근거 (Rationale):</span>
                   {selectedRecord.reviewDecision?.rationale || '표준 스키마 완전 준수 및 멀티인텐트 복원 완료.'}
