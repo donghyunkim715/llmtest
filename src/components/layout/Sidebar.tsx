@@ -14,7 +14,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   pendingApprovalCount,
 }) => {
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 bg-[#181c24] z-50 flex flex-col justify-between border-r border-[#262a33] shadow-[0_1px_8px_rgba(0,0,0,0.4)]">
+    <aside className="hidden lg:flex fixed left-0 top-0 h-full w-64 bg-[#181c24] z-50 flex-col justify-between border-r border-[#262a33] shadow-[0_1px_8px_rgba(0,0,0,0.4)]">
       <div className="flex flex-col flex-1 overflow-y-auto">
         {/* Brand Header */}
         <div className="h-16 flex items-center gap-2.5 px-5 bg-[#0a0e16] border-b border-[#262a33]">
@@ -194,34 +194,89 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="material-symbols-outlined text-[1.25rem]">data_table</span>
             <span className="text-sm">Datasets & Handoff</span>
           </button>
+
+          {/* ADMINISTRATION */}
+          <div className="px-3 pt-3 pb-1">
+            <span className="font-mono text-[0.6875rem] text-[#908fa0] uppercase tracking-wider font-semibold">
+              Administration
+            </span>
+          </div>
+
+          <button
+            onClick={() => onSelectTab('user-management')}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === 'user-management'
+                ? 'bg-[#8083ff] text-[#0d0096] font-bold shadow'
+                : 'text-[#c7c4d7] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[1.25rem]">group</span>
+            <span className="text-sm">User Management</span>
+          </button>
+
+          <button
+            onClick={() => onSelectTab('audit-logs')}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === 'audit-logs'
+                ? 'bg-[#8083ff] text-[#0d0096] font-bold shadow'
+                : 'text-[#c7c4d7] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[1.25rem]">history</span>
+            <span className="text-sm">Audit Logs</span>
+          </button>
+
+          <button
+            onClick={() => onSelectTab('infrastructure')}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === 'infrastructure'
+                ? 'bg-[#8083ff] text-[#0d0096] font-bold shadow'
+                : 'text-[#c7c4d7] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[1.25rem]">dns</span>
+            <span className="text-sm">Infrastructure</span>
+          </button>
+
+          <button
+            onClick={() => onSelectTab('settings')}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === 'settings'
+                ? 'bg-[#8083ff] text-[#0d0096] font-bold shadow'
+                : 'text-[#c7c4d7] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[1.25rem]">settings</span>
+            <span className="text-sm">Settings</span>
+          </button>
         </nav>
       </div>
 
       {/* Sidebar Footer */}
-      <div className="p-3 bg-[#0a0e16] border-t border-[#262a33] flex flex-col gap-1">
+      <div className="p-3 bg-[#0a0e16] border-t border-[#262a33] flex flex-col gap-1.5">
         <button
-          onClick={() => onSelectTab('infrastructure')}
-          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-            activeTab === 'infrastructure'
+          onClick={() => onSelectTab('login')}
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
+            activeTab === 'login'
               ? 'bg-[#8083ff] text-[#0d0096] font-bold'
-              : 'text-[#c7c4d7] hover:bg-[#262a33] hover:text-[#dfe2ee]'
+              : 'text-[#4cd7f6] hover:bg-[#262a33] hover:text-[#dfe2ee]'
           }`}
+          title="엔터프라이즈 로그인 및 SSO 인증 화면"
         >
-          <span className="material-symbols-outlined text-[1.25rem]">dns</span>
-          <span className="text-sm">Infrastructure</span>
+          <div className="flex items-center gap-2.5">
+            <span className="material-symbols-outlined text-[1.125rem]">lock</span>
+            <span className="text-xs font-semibold">SSO / 로그인 화면</span>
+          </div>
+          <span className="material-symbols-outlined text-[16px]">open_in_new</span>
         </button>
 
-        <button
-          onClick={() => onSelectTab('settings')}
-          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-            activeTab === 'settings'
-              ? 'bg-[#8083ff] text-[#0d0096] font-bold'
-              : 'text-[#c7c4d7] hover:bg-[#262a33] hover:text-[#dfe2ee]'
-          }`}
-        >
-          <span className="material-symbols-outlined text-[1.25rem]">tune</span>
-          <span className="text-sm">Settings</span>
-        </button>
+        <div className="p-2 rounded-lg bg-[#181c24] flex items-center justify-between border border-[#262a33]">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#4edea3]"></span>
+            <span className="font-mono text-[0.6875rem] text-[#dfe2ee]">Cluster EU-01</span>
+          </div>
+          <span className="font-mono text-[0.6875rem] text-[#908fa0]">99.98%</span>
+        </div>
       </div>
     </aside>
   );

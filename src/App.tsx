@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { UserProfile, StageRecord, BatchManifest, AspectVotes, ModelRubricScores } from './types/flywheel';
-import { INITIAL_USERS, INITIAL_RECORDS, INITIAL_BATCHES } from './data/mockFlywheelData';
+import { UserProfile, StageRecord, BatchManifest, AspectVotes, ModelRubricScores, ManagedUser, GovernanceAuditLog } from './types/flywheel';
+import { INITIAL_USERS, INITIAL_RECORDS, INITIAL_BATCHES, INITIAL_MANAGED_USERS, INITIAL_AUDIT_LOGS } from './data/mockFlywheelData';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { OverviewView } from './components/views/OverviewView';
@@ -14,15 +14,146 @@ import { DatasetsHandoffView } from './components/views/DatasetsHandoffView';
 import { PipelineRunsView } from './components/views/PipelineRunsView';
 import { InfrastructureView } from './components/views/InfrastructureView';
 import { SettingsView } from './components/views/SettingsView';
+import { UserManagementView } from './components/views/UserManagementView';
+import { LoginAuthView } from './components/views/LoginAuthView';
+import { AuditLogsView } from './components/views/AuditLogsView';
+import { MobileBottomNav } from './components/layout/MobileBottomNav';
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState<UserProfile>(INITIAL_USERS[0]); // Dr. Elena Vance
-  const [activeTab, setActiveTab] = useState<string>('overview');
+  const [currentUser, setCurrentUser] = useState<UserProfile>(INITIAL_USERS[0]); // Dr. K. Vance
+  const [activeTab, setActiveTab] = useState<string>('user-management'); // Set default or overview
   const [records, setRecords] = useState<StageRecord[]>(INITIAL_RECORDS);
   const [batches, setBatches] = useState<BatchManifest[]>(INITIAL_BATCHES);
+  const [managedUsers, setManagedUsers] = useState<ManagedUser[]>(INITIAL_MANAGED_USERS);
+  const [auditLogs, setAuditLogs] = useState<GovernanceAuditLog[]>(INITIAL_AUDIT_LOGS);
   const [currentRecordIndex, setCurrentRecordIndex] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [playgroundRecord, setPlaygroundRecord] = useState<StageRecord>(INITIAL_RECORDS[0]);
+
+  // Handle user role governance update
+  const handleUpdateUserRole = (
+    userId: string,
+    newRole: ManagedUser['role'],
+    ticketNumber: string,
+    reason: string
+  ) => {
+    let updatedTargetName = '';
+    setManagedUsers((prev) =>
+      prev.map((u) => {
+        if (u.id === userId) {
+          updatedTargetName = u.name;
+          return {
+            ...u,
+            role: newRole,
+          };
+        }
+        return u;
+      })
+    );
+
+    // Append to immutable audit log
+    const newLog: GovernanceAuditLog = {
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' KST',
+      actorName: currentUser.name,
+      actorEmail: currentUser.email,
+      action: 'ROLE_ELEVATION',
+      targetUser: updatedTargetName || userId,
+      detail: `권한 갱신: [${newRole}] 인가 (${reason})`,
+      ticketNumber,
+      hash: `0x${Math.random().toString(16).substring(2, 10)}..${Math.random().toString(16).substring(2, 6)}`,
+    };
+    setAuditLogs((prev) => [newLog, ...prev]);
+  };
+
+  // Handle approving pending user
+  const handleApprovePendingUser = (userId: string) => {
+    let userName = '';
+    setManagedUsers((prev) =>
+      prev.map((u) => {
+        if (u.id === userId) {
+          userName = u.name;
+          return {
+            ...u,
+            status: 'ACTIVE',
+            statusLabel: '정상 활성',
+            mfaLabel: 'TOTP 활성 (인증됨)',
+            mfaType: 'TOTP',
+            lastActive: '방금 전',
+            ipAddress: '10.240.22.15',
+          };
+        }
+        return u;
+      })
+    );
+
+    const newLog: GovernanceAuditLog = {
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' KST',
+      actorName: currentUser.name,
+      actorEmail: currentUser.email,
+      action: 'ACCOUNT_APPROVE',
+      targetUser: userName || userId,
+      detail: '2차 승인 대기 계정 최종 승인 및 활성화 처리',
+      ticketNumber: 'IAM-APPROVE-MANUAL',
+      hash: `0x${Math.random().toString(16).substring(2, 10)}..${Math.random().toString(16).substring(2, 6)}`,
+    };
+    setAuditLogs((prev) => [newLog, ...prev]);
+  };
+
+  // Handle reactivating suspended user
+  const handleReactivateUser = (userId: string) => {
+    let userName = '';
+    setManagedUsers((prev) =>
+      prev.map((u) => {
+        if (u.id === userId) {
+          userName = u.name;
+          return {
+            ...u,
+            status: 'ACTIVE',
+            statusLabel: '정상 활성',
+            lastActive: '방금 재활성화',
+          };
+        }
+        return u;
+      })
+    );
+
+    const newLog: GovernanceAuditLog = {
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' KST',
+      actorName: currentUser.name,
+      actorEmail: currentUser.email,
+      action: 'ACCOUNT_REACTIVATE',
+      targetUser: userName || userId,
+      detail: '비활성화 계정 잠금 해제 및 활성화',
+      ticketNumber: 'IAM-UNLOCK-PASS',
+      hash: `0x${Math.random().toString(16).substring(2, 10)}..${Math.random().toString(16).substring(2, 6)}`,
+    };
+    setAuditLogs((prev) => [newLog, ...prev]);
+  };
+
+  // Handle inviting new user
+  const handleInviteUser = (newUser: Omit<ManagedUser, 'id'>) => {
+    const created: ManagedUser = {
+      ...newUser,
+      id: `usr-gov-${Date.now().toString().slice(-4)}`,
+    };
+    setManagedUsers((prev) => [created, ...prev]);
+
+    const newLog: GovernanceAuditLog = {
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' KST',
+      actorName: currentUser.name,
+      actorEmail: currentUser.email,
+      action: 'USER_INVITED',
+      targetUser: `${created.name} (${created.email})`,
+      detail: `신규 팀원 초대 발송: [${created.role}] 배정 (${created.team})`,
+      ticketNumber: 'IAM-INVITE-NEW',
+      hash: `0x${Math.random().toString(16).substring(2, 10)}..${Math.random().toString(16).substring(2, 6)}`,
+    };
+    setAuditLogs((prev) => [newLog, ...prev]);
+  };
 
   // Handle saving 1st stage review verdict (Labeling)
   const handleSaveVerdict = (
@@ -146,6 +277,20 @@ export default function App() {
   const unassignedReviewCount = records.filter((r) => !r.reviewDecision).length;
   const pendingApprovalCount = records.filter((r) => r.reviewDecision && !r.approvalDecision).length;
 
+  // Standalone full-screen Enterprise Login & SSO Screen
+  if (activeTab === 'login') {
+    return (
+      <LoginAuthView
+        currentUser={currentUser}
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          setActiveTab('user-management');
+        }}
+        onBackToDashboard={() => setActiveTab('user-management')}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0f131c] text-[#dfe2ee] font-sans flex antialiased selection:bg-[#8083ff] selection:text-[#0d0096]">
       {/* Fixed Left Navigation Sidebar */}
@@ -157,7 +302,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 ml-64 flex flex-col min-w-0">
+      <div className="flex-1 ml-0 lg:ml-64 flex flex-col min-w-0">
         {/* Fixed Top Header */}
         <Header
           currentUser={currentUser}
@@ -173,11 +318,29 @@ export default function App() {
         />
 
         {/* Scrollable View Canvas */}
-        <main className="flex-1 mt-16 p-6 overflow-y-auto">
+        <main className="flex-1 mt-16 p-3 sm:p-6 pb-28 lg:pb-8 overflow-y-auto">
           {activeTab === 'overview' && (
             <OverviewView
               batches={batches}
               onNavigateTab={setActiveTab}
+            />
+          )}
+
+          {activeTab === 'user-management' && (
+            <UserManagementView
+              managedUsers={managedUsers}
+              onUpdateUserRole={handleUpdateUserRole}
+              onApprovePendingUser={handleApprovePendingUser}
+              onReactivateUser={handleReactivateUser}
+              onInviteUser={handleInviteUser}
+              onNavigateAuditLogs={() => setActiveTab('audit-logs')}
+            />
+          )}
+
+          {activeTab === 'audit-logs' && (
+            <AuditLogsView
+              auditLogs={auditLogs}
+              onNavigateUserManagement={() => setActiveTab('user-management')}
             />
           )}
 
@@ -262,6 +425,14 @@ export default function App() {
           {activeTab === 'settings' && <SettingsView />}
         </main>
       </div>
+
+      {/* Mobile Fixed Bottom Navigation Bar */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        unassignedReviewCount={unassignedReviewCount}
+        pendingApprovalCount={pendingApprovalCount}
+      />
     </div>
   );
 }

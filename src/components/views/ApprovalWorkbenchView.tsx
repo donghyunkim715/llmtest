@@ -21,13 +21,13 @@ export const ApprovalWorkbenchView: React.FC<ApprovalWorkbenchProps> = ({
   const [returnNote, setReturnNote] = useState<string>('');
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<'adopted' | 'defect' | 'diff'>('adopted');
+  const [isGateAccordionOpen, setIsGateAccordionOpen] = useState(false);
 
   const showToast = (m: string) => {
     setToastMsg(m);
     setTimeout(() => setToastMsg(null), 2500);
   };
-
-  const selectedRecord = records.find((r) => r.id === selectedRecordId) || records[0];
 
   const filteredRecords = records.filter((r) => {
     if (filterTab === 'pending') return r.reviewDecision && !r.approvalDecision;
@@ -35,6 +35,30 @@ export const ApprovalWorkbenchView: React.FC<ApprovalWorkbenchProps> = ({
     if (filterTab === 'returned') return r.approvalDecision?.status === 'returned';
     return true;
   });
+
+  const selectedRecord = records.find((r) => r.id === selectedRecordId) || filteredRecords[0] || records[0];
+  const currentIndex = filteredRecords.findIndex((r) => r.id === (selectedRecord?.id || ''));
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setSelectedRecordId(filteredRecords[currentIndex - 1].id);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex < filteredRecords.length - 1) {
+      setSelectedRecordId(filteredRecords[currentIndex + 1].id);
+    }
+  };
+
+  const adoptedCandidate =
+    selectedRecord?.candidates?.find((c) => c.id === selectedRecord?.reviewDecision?.selectedCandidateId) ||
+    selectedRecord?.candidates?.[0];
+
+  const defectCandidate =
+    selectedRecord?.candidates?.find((c) => c.id !== selectedRecord?.reviewDecision?.selectedCandidateId) ||
+    selectedRecord?.candidates?.[1] ||
+    selectedRecord?.candidates?.[0];
 
   const handleApprove = (recordId: string) => {
     onApproveRecord(recordId, 'Approved for foundation model distillation & SFT handoff');
@@ -50,9 +74,9 @@ export const ApprovalWorkbenchView: React.FC<ApprovalWorkbenchProps> = ({
   };
 
   return (
-    <div className="flex flex-col w-full gap-5 pb-12">
+    <div className="flex flex-col w-full text-[#dfe2ee]">
       {toastMsg && (
-        <div className="fixed bottom-6 right-8 pointer-events-none transition-all duration-300 z-50 animate-in fade-in slide-in-from-bottom-3">
+        <div className="fixed bottom-20 lg:bottom-6 right-4 lg:right-8 pointer-events-none transition-all duration-300 z-50 animate-in fade-in slide-in-from-bottom-3">
           <div className="bg-[#1c2028] border border-[#31353e] px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
             <span className="material-symbols-outlined text-[#4edea3] text-[1.5rem]">verified</span>
             <div className="flex flex-col">
@@ -62,6 +86,254 @@ export const ApprovalWorkbenchView: React.FC<ApprovalWorkbenchProps> = ({
           </div>
         </div>
       )}
+
+      {/* ========================================================
+          MOBILE ADAPTIVE VIEW (< lg) - Stitch Mobile Approval Prototype
+         ======================================================== */}
+      <div className="flex lg:hidden flex-col w-full space-y-4 pb-24">
+        {/* Queue Navigator Strip */}
+        <section className="bg-[#181c24] rounded-xl p-3 border border-[#262a33] shadow-md flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm font-bold text-[#dfe2ee]">
+                {selectedRecord?.id || 'REC-89021'}
+              </span>
+              <span className="font-mono text-xs text-[#908fa0]">
+                ({currentIndex >= 0 ? currentIndex + 1 : 1} / {filteredRecords.length}건 대기)
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handlePrev}
+                disabled={currentIndex <= 0}
+                className="w-8 h-8 rounded-lg bg-[#262a33] text-[#dfe2ee] disabled:opacity-30 flex items-center justify-center active:scale-95"
+                type="button"
+                aria-label="이전 레코드"
+              >
+                <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={currentIndex >= filteredRecords.length - 1}
+                className="w-8 h-8 rounded-lg bg-[#262a33] text-[#dfe2ee] disabled:opacity-30 flex items-center justify-center active:scale-95"
+                type="button"
+                aria-label="다음 레코드"
+              >
+                <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Metadata Pill Strip */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 font-mono text-[0.6875rem]">
+            <span className="px-2 py-0.5 rounded bg-[#8083ff]/15 text-[#c0c1ff] font-semibold whitespace-nowrap">
+              {selectedRecord?.stage ? `${selectedRecord.stage.toUpperCase()} STAGE` : 'PLANNER STAGE'}
+            </span>
+            <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#c7c4d7] whitespace-nowrap">
+              {selectedRecord?.carModel || 'Genesis GV80 cCIC'}
+            </span>
+            <span className="px-2 py-0.5 rounded bg-[#262a33] text-[#908fa0] whitespace-nowrap">
+              Turn {(selectedRecord?.priorTurns?.length || 2) + 1}/3
+            </span>
+            {(selectedRecord?.blockingFlags || 0) > 0 && (
+              <span className="px-2 py-0.5 rounded bg-[#ffb4ab]/20 text-[#ffb4ab] font-bold whitespace-nowrap">
+                QUARANTINE
+              </span>
+            )}
+          </div>
+        </section>
+
+        {/* User Intent Utterance Card */}
+        <section className="bg-[#181c24] rounded-xl p-3.5 border border-[#262a33] shadow-md">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="font-mono text-[0.625rem] text-[#908fa0] uppercase tracking-wider font-semibold">
+              USER INTENT UTTERANCE
+            </span>
+            <span className="px-1.5 py-0.5 rounded bg-[#4cd7f6]/15 text-[#4cd7f6] font-mono text-[0.625rem] font-bold">
+              {selectedRecord?.category || 'Multi-Action'}
+            </span>
+          </div>
+          <blockquote className="text-sm font-medium text-[#dfe2ee] italic border-l-2 border-[#8083ff] pl-3 py-1 bg-[#1c2028]/60 rounded-r">
+            “{selectedRecord?.currentTargetQuery || '에어컨 22도로 맞추고 판교 현대백화점 경로 안내해줘'}”
+          </blockquote>
+        </section>
+
+        {/* 1차 리뷰 판정 결론 */}
+        <section className="bg-[#181c24] rounded-xl p-3.5 border border-[#262a33] shadow-md space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[18px] text-[#4edea3]">verified</span>
+              <span className="text-xs font-bold text-[#dfe2ee]">1차 검수 판정 결론</span>
+            </div>
+            <span className="font-mono text-xs text-[#4edea3] font-semibold bg-[#4edea3]/10 px-2 py-0.5 rounded">
+              {adoptedCandidate?.modelName || 'Claude 3.5'} 채택
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-xs bg-[#1c2028] p-2.5 rounded-lg border border-[#262a33]">
+            <div>
+              <span className="text-[#908fa0] block text-[0.625rem] font-mono uppercase">1차 검수자</span>
+              <span className="font-semibold text-[#dfe2ee] truncate">
+                {selectedRecord?.reviewDecision?.reviewerName || '김태현 (라벨링 리드)'}
+              </span>
+            </div>
+            <div>
+              <span className="text-[#908fa0] block text-[0.625rem] font-mono uppercase">합의도 (Consensus)</span>
+              <span className="font-semibold text-[#4edea3] font-mono">
+                {selectedRecord?.agreementRate || '3/4 (75%)'}
+              </span>
+            </div>
+          </div>
+
+          <p className="text-xs text-[#c7c4d7] leading-relaxed bg-[#0a0e16]/50 p-2.5 rounded border border-[#262a33]">
+            {selectedRecord?.reviewDecision?.rationale ||
+              '후보 A(Claude 3.5)는 의도 분기 및 파라미터 매핑이 규격과 100% 일치함. 후보 B(Distill v1.2)는 HVAC 안전 밸브 파라미터 누락 확인됨.'}
+          </p>
+        </section>
+
+        {/* Segmented Comparison Toggle & Code Viewer */}
+        <section className="bg-[#181c24] rounded-xl p-3.5 border border-[#262a33] shadow-md flex flex-col gap-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1 bg-[#1c2028] p-1 rounded-lg border border-[#262a33] w-full">
+              <button
+                onClick={() => setMobileTab('adopted')}
+                className={`flex-1 py-1.5 rounded text-xs font-semibold transition-all ${
+                  mobileTab === 'adopted'
+                    ? 'bg-[#4edea3] text-[#002111] font-bold shadow'
+                    : 'text-[#908fa0] hover:text-[#dfe2ee]'
+                }`}
+                type="button"
+              >
+                채택 ({adoptedCandidate?.modelName?.split(' ')[0] || 'Teacher'})
+              </button>
+              <button
+                onClick={() => setMobileTab('defect')}
+                className={`flex-1 py-1.5 rounded text-xs font-semibold transition-all ${
+                  mobileTab === 'defect'
+                    ? 'bg-[#ffb4ab] text-[#690005] font-bold shadow'
+                    : 'text-[#908fa0] hover:text-[#dfe2ee]'
+                }`}
+                type="button"
+              >
+                결함 ({defectCandidate?.modelName?.split(' ')[0] || 'Student'})
+              </button>
+              <button
+                onClick={() => setMobileTab('diff')}
+                className={`flex-1 py-1.5 rounded text-xs font-semibold transition-all ${
+                  mobileTab === 'diff'
+                    ? 'bg-[#8083ff] text-[#0d0096] font-bold shadow'
+                    : 'text-[#908fa0] hover:text-[#dfe2ee]'
+                }`}
+                type="button"
+              >
+                Raw Diff
+              </button>
+            </div>
+          </div>
+
+          {/* Telemetry Strip for Selected Tab */}
+          <div className="flex items-center justify-between text-[0.6875rem] font-mono px-1 text-[#908fa0]">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-[#4edea3]"></span>
+              {mobileTab === 'adopted' ? 'SCHEMA PASS' : mobileTab === 'defect' ? 'SCHEMA MISMATCH' : 'AST COMPARISON'}
+            </span>
+            <span>
+              {mobileTab === 'adopted'
+                ? `${adoptedCandidate?.latencyMs || 240}ms · ${adoptedCandidate?.tokens || 184}tok`
+                : `${defectCandidate?.latencyMs || 110}ms · ${defectCandidate?.tokens || 142}tok`}
+            </span>
+          </div>
+
+          {/* Code Viewer Viewport */}
+          <div className="bg-[#0a0e16] rounded-lg p-3 border border-[#262a33] font-mono text-xs overflow-x-auto max-h-64">
+            {mobileTab === 'adopted' && (
+              <pre className="text-[#4edea3] leading-relaxed whitespace-pre">
+                {JSON.stringify(adoptedCandidate?.outputJson || {}, null, 2)}
+              </pre>
+            )}
+            {mobileTab === 'defect' && (
+              <pre className="text-[#ffb4ab] leading-relaxed whitespace-pre">
+                {JSON.stringify(defectCandidate?.outputJson || {}, null, 2)}
+              </pre>
+            )}
+            {mobileTab === 'diff' && (
+              <div className="space-y-1">
+                <div className="text-[#4edea3] bg-[#4edea3]/10 px-2 py-0.5 rounded">
+                  + "target_temperature": 22.0
+                </div>
+                <div className="text-[#4edea3] bg-[#4edea3]/10 px-2 py-0.5 rounded">
+                  + "destination_name": "판교 현대백화점"
+                </div>
+                <div className="text-[#ffb4ab] bg-[#ffb4ab]/10 px-2 py-0.5 rounded">
+                  - "target_temp": "22"
+                </div>
+                <div className="text-[#ffb4ab] bg-[#ffb4ab]/10 px-2 py-0.5 rounded">
+                  - "safety_pulse_mode": null
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* 품질 검증 게이트 진단 (Accordion) */}
+        <section className="bg-[#181c24] rounded-xl border border-[#262a33] shadow-md overflow-hidden">
+          <button
+            onClick={() => setIsGateAccordionOpen(!isGateAccordionOpen)}
+            className="w-full p-3.5 flex items-center justify-between text-left hover:bg-[#1c2028] transition-colors"
+            type="button"
+          >
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] text-[#4edea3]">security</span>
+              <span className="text-xs font-bold text-[#dfe2ee]">품질 검증 게이트 진단 (3/3 PASS)</span>
+            </div>
+            <span className="material-symbols-outlined text-[18px] text-[#908fa0] transition-transform duration-200">
+              {isGateAccordionOpen ? 'expand_less' : 'expand_more'}
+            </span>
+          </button>
+
+          {isGateAccordionOpen && (
+            <div className="p-3.5 pt-0 space-y-2 border-t border-[#262a33] font-mono text-xs">
+              <div className="flex items-center justify-between p-2 rounded bg-[#1c2028]">
+                <span className="text-[#dfe2ee]">1. Blocking Flags</span>
+                <span className="text-[#4edea3] font-bold">0건 (PASS)</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded bg-[#1c2028]">
+                <span className="text-[#dfe2ee]">2. PII 마스킹</span>
+                <span className="text-[#4edea3] font-bold">100% 비식별화</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded bg-[#1c2028]">
+                <span className="text-[#dfe2ee]">3. 이전 반려 회차</span>
+                <span className="text-[#dfe2ee] font-bold">0회 (신규)</span>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Sticky Mobile Bottom Action Bar */}
+        <div className="fixed bottom-14 left-0 right-0 p-3 bg-[#10141d]/95 backdrop-blur border-t border-[#262a33] z-40 flex items-center gap-2">
+          <button
+            onClick={() => setIsReturnModalOpen(true)}
+            className="min-h-[44px] px-4 rounded-xl bg-[#262a33] hover:bg-[#31353e] text-[#ffb4ab] font-mono text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[18px]">replay</span>
+            <span>1차 반려</span>
+          </button>
+          <button
+            onClick={() => selectedRecord && handleApprove(selectedRecord.id)}
+            className="min-h-[44px] flex-1 rounded-xl bg-[#4edea3] hover:bg-[#34c78a] text-[#002111] font-mono text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition-transform"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[18px]">check_circle</span>
+            <span>학습 데이터 최종 승인</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ========================================================
+          DESKTOP VIEW (lg:flex) - Comprehensive 2-col Split Inspector
+         ======================================================== */}
+      <div className="hidden lg:flex flex-col gap-5 pb-12">
 
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#181c24] p-4 rounded-xl border border-[#262a33] shadow-md">
@@ -331,11 +603,12 @@ export const ApprovalWorkbenchView: React.FC<ApprovalWorkbenchProps> = ({
           </div>
         )}
       </div>
+      </div>
 
-      {/* Return Note Modal */}
+      {/* Return Note Modal - Responsive Bottom Sheet on Mobile / Centered Card on Desktop */}
       {isReturnModalOpen && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#181c24] border border-[#31353e] rounded-xl w-full max-w-lg p-5 shadow-2xl flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-[#181c24] border-t sm:border border-[#31353e] rounded-t-2xl sm:rounded-xl w-full max-w-lg p-5 shadow-2xl flex flex-col gap-3 animate-in fade-in slide-in-from-bottom sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-[#262a33]">
               <div className="flex items-center gap-2 text-[#ffb4ab]">
                 <span className="material-symbols-outlined">reply</span>
@@ -344,30 +617,52 @@ export const ApprovalWorkbenchView: React.FC<ApprovalWorkbenchProps> = ({
               <button
                 onClick={() => setIsReturnModalOpen(false)}
                 className="text-[#908fa0] hover:text-white material-symbols-outlined"
+                type="button"
               >
                 close
               </button>
             </div>
+
             <p className="text-xs text-[#c7c4d7]">
               레코드 #{selectedRecord?.id}의 1차 판정 결과가 반려됩니다. 1차 검수자 큐에 반려 사유와 함께 복귀됩니다.
             </p>
+
+            {/* Quick Chips */}
+            <div className="flex flex-wrap gap-1.5 py-1">
+              {['Schema 규격 위반', '과잉 마스킹 오류', '지시문 누락', 'JSON Syntax Error', '파라미터 불일치'].map(
+                (chip) => (
+                  <button
+                    key={chip}
+                    type="button"
+                    onClick={() => setReturnNote((prev) => (prev ? `${prev}, ${chip}` : chip))}
+                    className="px-2 py-1 rounded bg-[#262a33] hover:bg-[#31353e] text-[#ffb4ab] font-mono text-[0.6875rem] transition-colors"
+                  >
+                    + {chip}
+                  </button>
+                )
+              )}
+            </div>
+
             <textarea
               value={returnNote}
               onChange={(e) => setReturnNote(e.target.value)}
               placeholder="예: 윈도우 조작 시 안전 모터 펄스 파라미터가 누락되었으니 후보 D 또는 교정본을 반영해주세요."
               rows={4}
-              className="w-full bg-[#0a0e16] text-[#dfe2ee] p-2.5 rounded text-xs border border-[#262a33] focus:outline-none focus:ring-1 focus:ring-[#ffb4ab]"
+              className="w-full bg-[#0a0e16] text-[#dfe2ee] p-2.5 rounded-lg text-xs border border-[#262a33] focus:outline-none focus:ring-1 focus:ring-[#ffb4ab]"
             />
+
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => setIsReturnModalOpen(false)}
-                className="px-3 py-1.5 bg-[#262a33] hover:bg-[#31353e] rounded text-xs text-[#dfe2ee]"
+                className="min-h-[40px] px-4 py-2 bg-[#262a33] hover:bg-[#31353e] rounded-lg text-xs text-[#dfe2ee]"
               >
                 취소
               </button>
               <button
+                type="button"
                 onClick={handleReturnConfirm}
-                className="px-4 py-1.5 bg-[#93000a] hover:bg-[#ffb4ab] text-[#ffdad6] hover:text-[#690005] font-bold rounded text-xs transition-colors"
+                className="min-h-[40px] px-5 py-2 bg-[#93000a] hover:bg-[#ffb4ab] text-[#ffdad6] hover:text-[#690005] font-bold rounded-lg text-xs transition-colors"
               >
                 반려 전송
               </button>

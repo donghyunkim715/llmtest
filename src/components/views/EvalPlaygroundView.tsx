@@ -128,6 +128,8 @@ export const EvalPlaygroundView: React.FC<EvalPlaygroundProps> = ({
     },
   ]);
 
+  const [mobileActiveOutputIndex, setMobileActiveOutputIndex] = useState(0);
+
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 2500);
@@ -165,38 +167,40 @@ export const EvalPlaygroundView: React.FC<EvalPlaygroundProps> = ({
       )}
 
       {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#181c24] p-4 rounded-xl border border-[#262a33] shadow-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#181c24] p-4 rounded-xl border border-[#262a33] shadow-md">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-[#c0c1ff]/10 border border-[#8083ff]/30 flex items-center justify-center text-[#c0c1ff]">
+          <div className="w-10 h-10 rounded-lg bg-[#c0c1ff]/10 border border-[#8083ff]/30 flex items-center justify-center text-[#c0c1ff] shrink-0">
             <span className="material-symbols-outlined text-[1.5rem]">terminal</span>
           </div>
           <div className="flex flex-col">
-            <h1 className="font-semibold text-lg text-[#dfe2ee] tracking-tight flex items-center gap-2">
-              다중 모델 비교 추론 플레이그라운드 (Eval Playground)
+            <h1 className="font-semibold text-lg text-[#dfe2ee] tracking-tight flex flex-wrap items-center gap-2">
+              <span>다중 모델 비교 추론 플레이그라운드</span>
               <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#8083ff]/20 text-[#c0c1ff]">
                 MULTI-MODEL REPLAY
               </span>
             </h1>
-            <p className="text-xs text-[#c7c4d7]">
+            <p className="text-xs text-[#c7c4d7] mt-0.5">
               실운영 LLM 로그를 기반으로 여러 모델에 프롬프트를 즉시 전달하고 실시간 도구 호출과 응답 일치도를 교차 검증합니다.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
           <button
             onClick={() => {
               setUserQuery('“시트 열선 2단으로 켜고 통풍은 꺼줘”');
               setPriorContext('');
             }}
-            className="px-2.5 py-1.5 rounded bg-[#262a33] hover:bg-[#31353e] text-xs font-mono text-[#dfe2ee] transition-colors border border-[#31353e]"
+            type="button"
+            className="min-h-[40px] px-3 py-2 rounded bg-[#262a33] hover:bg-[#31353e] text-xs font-mono text-[#dfe2ee] transition-colors border border-[#31353e] flex items-center justify-center"
           >
             차량 제어 샘플 로드
           </button>
           <button
             onClick={handleRunInference}
             disabled={isRunning}
-            className="px-4 py-2 bg-[#4cd7f6] hover:bg-[#03b5d3] text-[#001f26] font-bold rounded-lg text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 shadow transition-all active:scale-95 disabled:opacity-50"
+            type="button"
+            className="min-h-[44px] px-4 py-2 bg-[#4cd7f6] hover:bg-[#03b5d3] text-[#001f26] font-bold rounded-lg text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-1.5 shadow transition-all active:scale-95 disabled:opacity-50"
           >
             {isRunning ? (
               <>
@@ -219,7 +223,7 @@ export const EvalPlaygroundView: React.FC<EvalPlaygroundProps> = ({
         <div className="col-span-12 lg:col-span-8 bg-[#181c24] rounded-xl p-4 border border-[#262a33] shadow-md flex flex-col gap-3">
           <div className="flex items-center justify-between pb-1 border-b border-[#262a33]">
             <span className="font-mono text-xs font-bold text-[#dfe2ee] uppercase">Prompt & Multiturn Input</span>
-            <span className="font-mono text-[0.6875rem] text-[#908fa0]">실운영 로그 파라미터 직접 편집 가능</span>
+            <span className="font-mono text-[0.6875rem] text-[#908fa0]">실운영 로그 파라미터 직접 편집</span>
           </div>
 
           <div className="space-y-3">
@@ -372,7 +376,7 @@ export const EvalPlaygroundView: React.FC<EvalPlaygroundProps> = ({
         </div>
       </div>
 
-      {/* Model Outputs Comparison Cards (4 Cols Layout) */}
+      {/* Model Outputs Comparison Section */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -382,7 +386,78 @@ export const EvalPlaygroundView: React.FC<EvalPlaygroundProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        {/* Mobile Segmented Switcher (< md) */}
+        <div className="flex md:hidden bg-[#181c24] p-1 rounded-xl border border-[#262a33] overflow-x-auto no-scrollbar gap-1">
+          {modelOutputs.map((item, idx) => (
+            <button
+              key={item.id}
+              onClick={() => setMobileActiveOutputIndex(idx)}
+              type="button"
+              className={`flex-1 min-h-[38px] px-2.5 py-1.5 rounded-lg text-xs font-mono font-medium whitespace-nowrap transition-all flex items-center justify-center gap-1 ${
+                mobileActiveOutputIndex === idx
+                  ? 'bg-[#4cd7f6] text-[#001f26] font-bold shadow'
+                  : 'text-[#908fa0] hover:text-[#dfe2ee]'
+              }`}
+            >
+              <span>{item.modelName.split(' ')[0]}</span>
+              {item.schemaValid ? (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3]"></span>
+              ) : (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#ffb4ab]"></span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Mobile Single Card Focus (< md) */}
+        <div className="block md:hidden">
+          {(() => {
+            const item = modelOutputs[mobileActiveOutputIndex];
+            if (!item) return null;
+            return (
+              <div className="bg-[#181c24] rounded-xl p-4 border border-[#262a33] shadow-md flex flex-col gap-3">
+                <div className="flex items-center justify-between pb-2 border-b border-[#262a33]">
+                  <span className="font-bold text-sm text-[#dfe2ee]">{item.modelName}</span>
+                  <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#1c2028] text-[#908fa0]">
+                    {item.role}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs font-mono text-[#908fa0] bg-[#0a0e16] px-3 py-1.5 rounded-lg">
+                  <span>{item.latencyMs}ms</span>
+                  <span>{item.tokens} tokens</span>
+                  <span className={item.schemaValid ? 'text-[#4edea3] font-bold' : 'text-[#ffb4ab] font-bold'}>
+                    {item.schemaValid ? 'Schema OK' : 'Schema Fail'}
+                  </span>
+                </div>
+
+                {item.error && (
+                  <div className="p-2 rounded bg-[#93000a]/30 border border-[#ffb4ab]/30 text-[#ffb4ab] font-mono text-xs">
+                    {item.error}
+                  </div>
+                )}
+
+                <div className="bg-[#0a0e16] p-3 rounded-lg font-mono text-xs max-h-60 overflow-x-auto overflow-y-auto border border-[#262a33]">
+                  <pre className="text-[#c7c4d7] whitespace-pre-wrap">
+                    <code>{item.output}</code>
+                  </pre>
+                </div>
+
+                <button
+                  onClick={() => handleSaveToRun(item)}
+                  type="button"
+                  className="w-full min-h-[44px] py-2.5 bg-[#262a33] hover:bg-[#8083ff]/30 text-[#c0c1ff] hover:text-white rounded-xl text-xs font-mono font-semibold transition-colors flex items-center justify-center gap-1.5 border border-[#31353e] active:scale-95"
+                >
+                  <span className="material-symbols-outlined text-[18px]">add_task</span>
+                  <span>후보로 승격 (Save to Record)</span>
+                </button>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Desktop Multi-column Grid (>= md) */}
+        <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-4 gap-4">
           {modelOutputs.map((item) => (
             <div
               key={item.id}
@@ -420,6 +495,7 @@ export const EvalPlaygroundView: React.FC<EvalPlaygroundProps> = ({
               <div className="pt-3 border-t border-[#262a33] mt-2">
                 <button
                   onClick={() => handleSaveToRun(item)}
+                  type="button"
                   className="w-full py-1.5 bg-[#262a33] hover:bg-[#8083ff]/30 text-[#c0c1ff] hover:text-white rounded text-xs font-mono font-semibold transition-colors flex items-center justify-center gap-1 border border-[#31353e]"
                 >
                   <span className="material-symbols-outlined text-[1rem]">add_task</span>

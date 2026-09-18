@@ -33,22 +33,23 @@ export const DatasetsHandoffView: React.FC<DatasetsHandoffProps> = ({ records })
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#181c24] p-4 rounded-xl border border-[#262a33] shadow-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#181c24] p-4 rounded-xl border border-[#262a33] shadow-md">
         <div>
-          <h1 className="text-lg font-bold text-[#dfe2ee] flex items-center gap-2">
-            학습 데이터셋 핸드오프 (Datasets & Handoff)
+          <h1 className="text-lg font-bold text-[#dfe2ee] flex flex-wrap items-center gap-2">
+            <span>학습 데이터셋 핸드오프 (Datasets & Handoff)</span>
             <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#4edea3]/20 text-[#4edea3]">
               DISTILLATION READY
             </span>
           </h1>
-          <p className="text-xs text-[#c7c4d7]">
+          <p className="text-xs text-[#c7c4d7] mt-1">
             1차 검수와 2차 승인이 완료된 최고 품질의 Ground-Truth 레코드를 컴파일하여 SFT/DPO 파운데이션 미세조정 데이터셋으로 배포합니다.
           </p>
         </div>
 
         <button
           onClick={handleExport}
-          className="px-4 py-2 bg-[#4edea3] hover:bg-[#34c78a] text-[#002111] font-bold rounded-lg text-xs font-mono flex items-center gap-1.5 shadow"
+          className="min-h-[44px] px-4 py-2 bg-[#4edea3] hover:bg-[#34c78a] text-[#002111] font-bold rounded-lg text-xs font-mono flex items-center justify-center gap-1.5 shadow active:scale-95 transition-transform shrink-0"
+          type="button"
         >
           <span className="material-symbols-outlined text-[1.125rem]">download</span>
           <span>Approved Slice Export (JSONL)</span>
@@ -56,7 +57,7 @@ export const DatasetsHandoffView: React.FC<DatasetsHandoffProps> = ({ records })
       </div>
 
       {/* Stats Bento */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
         <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] shadow-md">
           <span className="font-mono text-xs text-[#908fa0] uppercase">Handoff Approved Pool</span>
           <div className="text-2xl font-bold text-[#4edea3] mt-1">{approvedRecords.length} Records</div>
@@ -69,7 +70,7 @@ export const DatasetsHandoffView: React.FC<DatasetsHandoffProps> = ({ records })
           <p className="text-xs text-[#c7c4d7] mt-1">다음 학습 사이클: 2025-03-w12 예정</p>
         </div>
 
-        <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] shadow-md">
+        <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] shadow-md sm:col-span-2 md:col-span-1">
           <span className="font-mono text-xs text-[#908fa0] uppercase">Format Standard</span>
           <div className="text-2xl font-bold text-[#c0c1ff] mt-1">ChatML & ToolCalls</div>
           <p className="text-xs text-[#c7c4d7] mt-1">정규화된 다중 턴 JSON Schema 구조</p>
@@ -78,42 +79,45 @@ export const DatasetsHandoffView: React.FC<DatasetsHandoffProps> = ({ records })
 
       {/* Export Format Selector & Sample Preview */}
       <div className="bg-[#181c24] rounded-xl p-4 border border-[#262a33] shadow-md flex flex-col gap-3">
-        <div className="flex items-center justify-between pb-2 border-b border-[#262a33]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-[#262a33] gap-2">
           <span className="font-mono text-xs font-bold text-[#dfe2ee] uppercase">Export Format Configuration</span>
-          <div className="inline-flex p-0.5 bg-[#0a0e16] rounded-lg border border-[#262a33] font-mono text-xs">
+          <div className="flex flex-wrap p-0.5 bg-[#0a0e16] rounded-lg border border-[#262a33] font-mono text-xs gap-0.5">
             <button
+              type="button"
               onClick={() => setExportFormat('sft')}
-              className={`px-3 py-1 rounded transition-colors ${
+              className={`flex-1 sm:flex-none px-3 py-1.5 rounded transition-colors ${
                 exportFormat === 'sft' ? 'bg-[#8083ff] text-[#0d0096] font-bold' : 'text-[#908fa0]'
               }`}
             >
-              Supervised Fine-Tuning (SFT)
+              Supervised (SFT)
             </button>
             <button
+              type="button"
               onClick={() => setExportFormat('dpo')}
-              className={`px-3 py-1 rounded transition-colors ${
+              className={`flex-1 sm:flex-none px-3 py-1.5 rounded transition-colors ${
                 exportFormat === 'dpo' ? 'bg-[#8083ff] text-[#0d0096] font-bold' : 'text-[#908fa0]'
               }`}
             >
-              Direct Preference (DPO Chosen vs Rejected)
+              Preference (DPO)
             </button>
             <button
+              type="button"
               onClick={() => setExportFormat('rlvr')}
-              className={`px-3 py-1 rounded transition-colors ${
+              className={`flex-1 sm:flex-none px-3 py-1.5 rounded transition-colors ${
                 exportFormat === 'rlvr' ? 'bg-[#8083ff] text-[#0d0096] font-bold' : 'text-[#908fa0]'
               }`}
             >
-              RLVR Verifiable Reward
+              RLVR Reward
             </button>
           </div>
         </div>
 
-        <div className="font-mono text-xs text-[#908fa0] flex justify-between">
+        <div className="font-mono text-xs text-[#908fa0] flex flex-wrap items-center justify-between gap-1">
           <span>Sample Export Payload Preview ({exportFormat.toUpperCase()} Format):</span>
           <span className="text-[#4edea3]">Schema Validation Pass 100%</span>
         </div>
 
-        <div className="bg-[#0a0e16] p-3 rounded-lg font-mono text-xs max-h-72 overflow-y-auto border border-[#262a33]">
+        <div className="bg-[#0a0e16] p-3 rounded-lg font-mono text-xs max-h-72 overflow-x-auto overflow-y-auto border border-[#262a33]">
           <pre className="text-[#4edea3]">
             <code>
               {exportFormat === 'sft' &&

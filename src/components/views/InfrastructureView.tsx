@@ -5,13 +5,13 @@ export const InfrastructureView: React.FC = () => {
     <div className="flex flex-col w-full gap-5 pb-12 text-[#dfe2ee]">
       <div className="bg-[#181c24] p-4 rounded-xl border border-[#262a33] shadow-md flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[#dfe2ee] flex items-center gap-2">
-            인프라 및 분산 노드 상태 (Infrastructure)
+          <h1 className="text-lg font-bold text-[#dfe2ee] flex flex-wrap items-center gap-2">
+            <span>인프라 및 분산 노드 상태 (Infrastructure)</span>
             <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#4edea3]/20 text-[#4edea3]">
               ALL SYSTEMS NOMINAL
             </span>
           </h1>
-          <p className="text-xs text-[#c7c4d7]">
+          <p className="text-xs text-[#c7c4d7] mt-1">
             제네시스/현대 커넥티드 카 텔레메트리 스트림 수집 Kafka 브로커, Redis 캐시, 분산 K8s 추론 워커 현황
           </p>
         </div>

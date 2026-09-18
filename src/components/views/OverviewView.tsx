@@ -13,7 +13,415 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   onNavigateTab,
 }) => {
   return (
-    <div className="flex flex-col w-full gap-5 pb-12 text-[#dfe2ee]">
+    <div className="flex flex-col w-full text-[#dfe2ee]">
+      {/* ========================================================
+          MOBILE VIEW (< lg) - Stitch Mobile Prototype
+         ======================================================== */}
+      <div className="flex lg:hidden flex-col w-full space-y-4 pb-6">
+        {/* Top Node Context & Quick Actions */}
+        <section className="bg-[#181c24] rounded-xl p-3.5 border border-[#262a33] shadow-md">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#4edea3] animate-pulse"></span>
+                <span className="font-mono text-[0.6875rem] text-[#4edea3] tracking-wider uppercase font-semibold">
+                  NODE ACTIVE
+                </span>
+                <span className="font-mono text-xs text-[#908fa0]">·</span>
+                <span className="font-mono text-xs text-[#c7c4d7] truncate">rn-9402_prod</span>
+              </div>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="material-symbols-outlined text-[15px] text-[#4cd7f6]">layers</span>
+                <span className="font-mono text-xs text-[#dfe2ee] font-semibold truncate">bch-202503a</span>
+                <span className="font-mono text-xs text-[#908fa0]">/</span>
+                <span className="font-mono text-xs text-[#4edea3] truncate">r-eval-k8</span>
+              </div>
+            </div>
+            <button
+              onClick={() => onNavigateTab('batches')}
+              className="min-h-[38px] px-3 rounded-lg bg-[#8083ff] text-[#0d0096] font-bold text-xs flex items-center gap-1 shadow-md active:scale-95 transition-transform shrink-0"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[16px]">add_circle</span>
+              <span>새 배치</span>
+            </button>
+          </div>
+        </section>
+
+        {/* Attention Triage Queue (Horizontal Snap Scroll) */}
+        <section className="flex flex-col">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <div className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[18px] text-[#ffb4ab]">notification_important</span>
+              <h2 className="text-sm font-bold text-[#dfe2ee]">주의 필요 큐 (Triage)</h2>
+              <span className="px-1.5 py-0.2 rounded bg-[#ffb4ab]/20 text-[#ffb4ab] font-mono text-[0.625rem] font-bold">
+                4건
+              </span>
+            </div>
+            <span className="font-mono text-[0.6875rem] text-[#908fa0]">좌우 스크롤 ↔</span>
+          </div>
+
+          {/* Snap Scroll Track */}
+          <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory py-1">
+            {/* Card 1: Critical Red */}
+            <div className="min-w-[270px] max-w-[280px] snap-center rounded-xl bg-[#181c24] p-3.5 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0 border border-[#262a33]">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-[#ffb4ab]"></div>
+              <div className="pl-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-mono text-[0.625rem] text-[#ffb4ab] bg-[#ffb4ab]/15 px-1.5 py-0.5 rounded font-semibold uppercase">
+                    CRITICAL RUN
+                  </span>
+                  <span className="font-mono text-[0.625rem] text-[#908fa0]">2m 전</span>
+                </div>
+                <h3 className="text-sm font-bold text-[#dfe2ee] mb-0.5">2 Failed Runs</h3>
+                <p className="font-mono text-xs text-[#c7c4d7] truncate">r-202503-491 · OOM 0xDEAD</p>
+                <div className="mt-2 text-[#ffb4ab] text-xs flex items-center gap-1 font-mono">
+                  <span className="material-symbols-outlined text-[14px]">memory</span>
+                  <span>VRAM Spike (23.8GB/24GB)</span>
+                </div>
+              </div>
+              <div className="mt-3 pl-2 flex items-center justify-between gap-2">
+                <button
+                  onClick={() => onNavigateTab('pipeline-runs')}
+                  className="min-h-[36px] flex-1 px-3 py-1.5 rounded-lg bg-[#ffb4ab] text-[#690005] font-mono text-xs font-bold flex items-center justify-center gap-1 active:opacity-90"
+                >
+                  <span className="material-symbols-outlined text-[15px]">replay</span>
+                  <span>즉시 재시도</span>
+                </button>
+                <button
+                  onClick={() => onNavigateTab('pipeline-runs')}
+                  aria-label="로그 보기"
+                  className="min-w-[36px] min-h-[36px] rounded-lg bg-[#262a33] text-[#dfe2ee] flex items-center justify-center"
+                >
+                  <span className="material-symbols-outlined text-[16px]">terminal</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Card 2: Amber Stalled */}
+            <div className="min-w-[270px] max-w-[280px] snap-center rounded-xl bg-[#181c24] p-3.5 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0 border border-[#262a33]">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-[#4cd7f6]"></div>
+              <div className="pl-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-mono text-[0.625rem] text-[#4cd7f6] bg-[#4cd7f6]/15 px-1.5 py-0.5 rounded font-semibold uppercase">
+                    HEARTBEAT DROP
+                  </span>
+                  <span className="font-mono text-[0.625rem] text-[#908fa0]">45m silent</span>
+                </div>
+                <h3 className="text-sm font-bold text-[#dfe2ee] mb-0.5">1 Stalled Run</h3>
+                <p className="font-mono text-xs text-[#c7c4d7] truncate">r-run-s3-ingest-b4</p>
+                <div className="mt-2 text-[#4cd7f6] text-xs flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">timer_off</span>
+                  <span>파이프라인 I/O 블록 발생</span>
+                </div>
+              </div>
+              <div className="mt-3 pl-2 flex items-center justify-between gap-2">
+                <button
+                  onClick={() => onNavigateTab('infrastructure')}
+                  className="min-h-[36px] flex-1 px-3 py-1.5 rounded-lg bg-[#4cd7f6] text-[#003640] font-mono text-xs font-bold flex items-center justify-center gap-1 active:opacity-90"
+                >
+                  <span className="material-symbols-outlined text-[15px]">bolt</span>
+                  <span>강제 재가동</span>
+                </button>
+                <button
+                  onClick={() => onNavigateTab('infrastructure')}
+                  aria-label="상세 정보"
+                  className="min-w-[36px] min-h-[36px] rounded-lg bg-[#262a33] text-[#dfe2ee] flex items-center justify-center"
+                >
+                  <span className="material-symbols-outlined text-[16px]">info</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Card 3: Quarantine Yellow */}
+            <div className="min-w-[270px] max-w-[280px] snap-center rounded-xl bg-[#181c24] p-3.5 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0 border border-[#262a33]">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-[#4edea3]"></div>
+              <div className="pl-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-mono text-[0.625rem] text-[#4edea3] bg-[#4edea3]/15 px-1.5 py-0.5 rounded font-semibold uppercase">
+                    QUARANTINE
+                  </span>
+                  <span className="font-mono text-[0.625rem] text-[#908fa0]">v2 검증</span>
+                </div>
+                <h3 className="text-sm font-bold text-[#dfe2ee] mb-0.5">48건 과잉 마스킹</h3>
+                <p className="font-mono text-xs text-[#c7c4d7] truncate">Student PII 감지 민감도 이상</p>
+                <div className="mt-2 text-[#4edea3] text-xs flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">shield</span>
+                  <span>격리 보관함 대기 중</span>
+                </div>
+              </div>
+              <div className="mt-3 pl-2 flex items-center justify-between gap-2">
+                <button
+                  onClick={() => onNavigateTab('records')}
+                  className="min-h-[36px] flex-1 px-3 py-1.5 rounded-lg bg-[#262a33] text-[#4edea3] font-mono text-xs font-bold flex items-center justify-center gap-1 active:opacity-90"
+                >
+                  <span className="material-symbols-outlined text-[15px]">visibility</span>
+                  <span>격리 샘플 검수</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Card 4: Purple Indigo Approval */}
+            <div className="min-w-[270px] max-w-[280px] snap-center rounded-xl bg-[#181c24] p-3.5 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0 border border-[#262a33]">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-[#8083ff]"></div>
+              <div className="pl-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-mono text-[0.625rem] text-[#c0c1ff] bg-[#8083ff]/15 px-1.5 py-0.5 rounded font-semibold uppercase">
+                    APPROVAL QUEUE
+                  </span>
+                  <span className="font-mono text-[0.625rem] text-[#908fa0]">오늘 마감</span>
+                </div>
+                <h3 className="text-sm font-bold text-[#dfe2ee] mb-0.5">142건 2차 승인</h3>
+                <p className="font-mono text-xs text-[#c7c4d7] truncate">High Confidence 배치 모음</p>
+                <div className="mt-2 text-[#c0c1ff] text-xs flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">verified</span>
+                  <span>합의도 99.1% 충족 24건</span>
+                </div>
+              </div>
+              <div className="mt-3 pl-2 flex items-center justify-between gap-2">
+                <button
+                  onClick={() => onNavigateTab('reviews-approval')}
+                  className="min-h-[36px] flex-1 px-3 py-1.5 rounded-lg bg-[#8083ff] text-[#0d0096] font-mono text-xs font-bold flex items-center justify-center gap-1 active:opacity-90"
+                >
+                  <span className="material-symbols-outlined text-[15px]">done_all</span>
+                  <span>일괄 승인 (24건)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Live Pipeline Run Monitor Card */}
+        <section className="rounded-xl bg-[#181c24] p-3.5 shadow-md border border-[#262a33] relative overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#8083ff]/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#4cd7f6] animate-ping"></span>
+                <span className="font-mono text-[0.6875rem] text-[#4cd7f6] uppercase font-semibold">
+                  LIVE PIPELINE RUN
+                </span>
+              </div>
+              <div className="text-base font-bold text-[#dfe2ee] truncate mt-0.5">#run-2025-03-w1</div>
+              <p className="text-xs text-[#908fa0] mt-0.5">Teacher-v3 Validation & Synthetic Alignment</p>
+            </div>
+            <span className="font-mono text-sm text-[#8083ff] font-bold px-2 py-1 rounded bg-[#8083ff]/10 shrink-0">
+              88.75%
+            </span>
+          </div>
+
+          {/* Segmented Micro Progress Bar */}
+          <div className="w-full bg-[#0a0e16] h-2.5 rounded-full overflow-hidden p-0.5 mb-2.5 flex gap-0.5">
+            <div className="h-full bg-[#4edea3] rounded-full" style={{ width: '30%' }}></div>
+            <div className="h-full bg-[#4edea3] rounded-full" style={{ width: '30%' }}></div>
+            <div className="h-full bg-[#8083ff] rounded-full animate-pulse" style={{ width: '28.75%' }}></div>
+            <div className="h-full bg-[#31353e] rounded-full" style={{ width: '11.25%' }}></div>
+          </div>
+
+          {/* Stage & ETA Meta Row */}
+          <div className="flex items-center justify-between text-xs mb-3 pt-0.5">
+            <div className="flex items-center gap-1 text-[#dfe2ee]">
+              <span className="material-symbols-outlined text-[16px] text-[#8083ff]">sync</span>
+              <span className="font-medium text-xs">Stage 03: Teacher Replay</span>
+              <span className="px-1.5 py-0.2 rounded bg-[#8083ff]/20 text-[#c0c1ff] font-mono text-[0.625rem]">
+                RUNNING
+              </span>
+            </div>
+            <div className="flex items-center gap-1 text-[#908fa0] font-mono text-xs">
+              <span className="material-symbols-outlined text-[14px]">hourglass_top</span>
+              <span>ETA 14m 20s</span>
+            </div>
+          </div>
+
+          {/* Real-time Spark Stats */}
+          <div className="grid grid-cols-2 gap-2 pt-2 bg-[#1c2028] rounded-lg p-2.5 border border-[#262a33]">
+            <div className="flex flex-col">
+              <span className="font-mono text-[0.625rem] text-[#908fa0] uppercase">THROUGHPUT</span>
+              <div className="flex items-baseline gap-1 mt-0.5">
+                <span className="font-mono text-sm font-bold text-[#dfe2ee]">3,840</span>
+                <span className="font-mono text-[0.625rem] text-[#4edea3]">rec/min</span>
+              </div>
+              <span className="font-mono text-[0.625rem] text-[#4edea3] flex items-center gap-0.5 mt-0.5">
+                <span className="material-symbols-outlined text-[12px]">trending_up</span> +14.2% spike
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-mono text-[0.625rem] text-[#908fa0] uppercase">INFERENCE LATENCY</span>
+              <div className="flex items-baseline gap-1 mt-0.5">
+                <span className="font-mono text-sm font-bold text-[#dfe2ee]">418</span>
+                <span className="font-mono text-[0.625rem] text-[#908fa0]">ms/req</span>
+              </div>
+              <span className="font-mono text-[0.625rem] text-[#4cd7f6] flex items-center gap-0.5 mt-0.5">
+                <span className="material-symbols-outlined text-[12px]">check_circle</span> p95 안정권
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* Review Funnel Progress (Multi-step Funnel) */}
+        <section className="rounded-xl bg-[#181c24] p-3.5 shadow-md border border-[#262a33]">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[18px] text-[#4cd7f6]">filter_alt</span>
+              <h2 className="text-sm font-bold text-[#dfe2ee]">검수 퍼널 현황 (24.1k)</h2>
+            </div>
+            <span className="font-mono text-[0.6875rem] text-[#908fa0]">전체 진척 63.2%</span>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-0.5">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#908fa0]">1. 미착수 대기</span>
+                <span className="font-mono text-xs font-semibold text-[#dfe2ee]">
+                  8,200건 <span className="text-[#908fa0] font-normal">(33.4%)</span>
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-[#0a0e16] rounded-full overflow-hidden">
+                <div className="h-full bg-[#464554] rounded-full" style={{ width: '33.4%' }}></div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-0.5">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#4cd7f6] font-medium">2. 1차 라벨러 완료</span>
+                <span className="font-mono text-xs font-semibold text-[#4cd7f6]">
+                  12,400건 <span className="text-[#908fa0] font-normal">(50.6%)</span>
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-[#0a0e16] rounded-full overflow-hidden">
+                <div className="h-full bg-[#4cd7f6] rounded-full" style={{ width: '50.6%' }}></div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-0.5">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#4edea3] font-medium">3. 2차 최종 승인</span>
+                <span className="font-mono text-xs font-semibold text-[#4edea3]">
+                  3,100건 <span className="text-[#908fa0] font-normal">(12.6%)</span>
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-[#0a0e16] rounded-full overflow-hidden">
+                <div className="h-full bg-[#4edea3] rounded-full" style={{ width: '12.6%' }}></div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-0.5">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#ffb4ab] font-medium">4. 반려 및 재작업</span>
+                <span className="font-mono text-xs font-semibold text-[#ffb4ab]">
+                  450건 <span className="text-[#908fa0] font-normal">(1.8%)</span>
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-[#0a0e16] rounded-full overflow-hidden">
+                <div className="h-full bg-[#ffb4ab] rounded-full" style={{ width: '1.8%' }}></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 p-2 rounded-lg bg-[#262a33] flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="material-symbols-outlined text-[18px] text-[#4cd7f6] shrink-0">warning</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-semibold text-[#dfe2ee] truncate">승인 무효화 경고 (24건)</span>
+                <span className="font-mono text-[0.625rem] text-[#908fa0] truncate">스펙 개정 v1.4 반영 필요</span>
+              </div>
+            </div>
+            <button
+              onClick={() => onNavigateTab('reviews-approval')}
+              className="px-2.5 py-1 rounded bg-[#4cd7f6]/15 text-[#4cd7f6] font-mono text-xs font-semibold shrink-0"
+              type="button"
+            >
+              재검증
+            </button>
+          </div>
+        </section>
+
+        {/* Model & Data Health Bento Grid (2x2) */}
+        <section className="flex flex-col">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <div className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[18px] text-[#4edea3]">monitor_heart</span>
+              <h2 className="text-sm font-bold text-[#dfe2ee]">모델 & 데이터 건전도</h2>
+            </div>
+            <span className="font-mono text-[0.6875rem] text-[#4edea3] flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3]"></span> 정상 가동
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="rounded-xl bg-[#181c24] p-3 flex flex-col justify-between border border-[#262a33]">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[0.625rem] text-[#908fa0] uppercase">정합률 (Align)</span>
+                <span className="material-symbols-outlined text-[16px] text-[#4edea3]">check_circle</span>
+              </div>
+              <div className="mt-2">
+                <div className="font-mono text-base font-bold text-[#dfe2ee]">97.4%</div>
+                <span className="font-mono text-[0.625rem] text-[#4edea3] mt-0.5 block">+0.8%p vs 기준치</span>
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-[#181c24] p-3 flex flex-col justify-between border border-[#262a33]">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[0.625rem] text-[#908fa0] uppercase">과잉마스킹</span>
+                <span className="material-symbols-outlined text-[16px] text-[#4cd7f6]">privacy_tip</span>
+              </div>
+              <div className="mt-2">
+                <div className="font-mono text-base font-bold text-[#dfe2ee]">3.1%</div>
+                <span className="font-mono text-[0.625rem] text-[#4cd7f6] mt-0.5 block">임계치 (5.0%) 미만</span>
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-[#181c24] p-3 flex flex-col justify-between border border-[#262a33]">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[0.625rem] text-[#908fa0] uppercase">Student Gap</span>
+                <span className="material-symbols-outlined text-[16px] text-[#8083ff]">difference</span>
+              </div>
+              <div className="mt-2">
+                <div className="font-mono text-base font-bold text-[#dfe2ee]">412건</div>
+                <span className="font-mono text-[0.625rem] text-[#908fa0] mt-0.5 block">전일 대비 -38건</span>
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-[#181c24] p-3 flex flex-col justify-between border border-[#262a33]">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[0.625rem] text-[#908fa0] uppercase">Label 의심</span>
+                <span className="material-symbols-outlined text-[16px] text-[#ffb4ab]">flag</span>
+              </div>
+              <div className="mt-2">
+                <div className="font-mono text-base font-bold text-[#ffb4ab]">89건</div>
+                <span className="font-mono text-[0.625rem] text-[#ffb4ab] mt-0.5 block">Cross-check 요망</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Quick Auto-Triage Footer Strip */}
+        <section className="p-3 rounded-xl bg-[#181c24] border border-[#262a33] flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-[#0a0e16] flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[#8083ff] text-[18px]">tune</span>
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-semibold text-[#dfe2ee] truncate">Flywheel Auto-Triage</span>
+              <span className="font-mono text-[0.625rem] text-[#908fa0] truncate">
+                규칙 기반 자동 승인 룰 8개 동작 중
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => onNavigateTab('settings')}
+            className="px-2.5 py-1 rounded-lg bg-[#262a33] text-[#dfe2ee] font-mono text-xs hover:text-[#8083ff] transition-colors shrink-0"
+            type="button"
+          >
+            룰 설정
+          </button>
+        </section>
+      </div>
+
+      {/* ========================================================
+          DESKTOP VIEW (lg:flex) - Comprehensive 12-col Dashboard
+         ======================================================== */}
+      <div className="hidden lg:flex flex-col gap-5 pb-12">
       {/* Upper Live Telemetry Strip */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-[#181c24] p-3 rounded-xl border border-[#262a33] shadow-md">
         <div className="flex items-center gap-3 px-3 py-1">
@@ -372,5 +780,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };

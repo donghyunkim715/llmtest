@@ -19,11 +19,30 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAttentionMenu, setShowAttentionMenu] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   return (
-    <header className="fixed top-0 left-64 right-0 h-16 bg-[#181c24]/95 backdrop-blur-md z-40 flex items-center justify-between px-6 border-b border-[#262a33] shadow-[0_1px_8px_rgba(0,0,0,0.3)]">
-      {/* Left Search & Active Context Bar */}
-      <div className="flex items-center gap-4 flex-1 max-w-2xl">
+    <header className="fixed top-0 left-0 lg:left-64 right-0 h-16 bg-[#181c24]/95 backdrop-blur-md z-40 flex items-center justify-between px-3 sm:px-6 border-b border-[#262a33] shadow-[0_1px_8px_rgba(0,0,0,0.3)] pt-safe">
+      {/* Mobile Branding (Visible on mobile only) */}
+      <div className="flex lg:hidden items-center gap-2 min-w-0">
+        <img
+          alt="Gleo Flywheel Logo"
+          className="h-7 w-7 object-contain rounded shrink-0"
+          src="https://lh3.googleusercontent.com/aida/AEtjO1VnxqW1NgjjwsKU65QLFM1W3hynSbXpLg-0twBLM7Qtc2P-6HEeHGOd8ff8_SeZ3U1WZJYhZnmbgKZomzfi16t_INdXvYHlSg_YfugwU0eX0yYg7hHTZSyGyiK12SCtoSgxLEyc3kKt6l91S4QjDNIqzyqu6YP8nKmuNybvJnjAXd17GaC2ZEOCVLKIZjKabd_nLruDxZgbx_Xt8RwSYS-OCuNrzy6-M5d0UsdC3IrHlADufuyKh_TlGoc"
+        />
+        <div className="flex flex-col min-w-0">
+          <span className="font-mono text-[0.625rem] text-[#c0c1ff] uppercase tracking-wider truncate">
+            Gleo Flywheel
+          </span>
+          <div className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
+            <span className="font-mono text-[0.6875rem] text-[#4edea3] font-semibold">REAL (운영)</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Search & Active Context Bar */}
+      <div className="hidden lg:flex items-center gap-4 flex-1 max-w-2xl">
         <div className="flex items-center gap-1.5 bg-[#31353e] px-2.5 py-1 rounded-full shrink-0">
           <span className="font-mono text-xs uppercase text-[#4cd7f6] font-bold tracking-wider">REAL (운영)</span>
           <span className="w-1.5 h-1.5 rounded-full bg-[#4cd7f6] animate-pulse"></span>
@@ -50,8 +69,37 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
+      {/* Mobile Search Overlay Bar */}
+      {showMobileSearch && (
+        <div className="lg:hidden absolute inset-x-0 top-0 h-16 bg-[#181c24] px-4 flex items-center gap-2 z-50 border-b border-[#262a33] animate-in fade-in duration-150">
+          <span className="material-symbols-outlined text-[#908fa0] text-[18px]">search</span>
+          <input
+            type="text"
+            autoFocus
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="flex-1 bg-[#0a0e16] text-[#dfe2ee] placeholder-[#908fa0] font-mono text-xs rounded-lg px-3 py-2 border border-[#262a33] focus:outline-none focus:border-[#8083ff]"
+            placeholder="레코드(#REC-), 프롬프트 검색..."
+          />
+          <button
+            onClick={() => setShowMobileSearch(false)}
+            className="p-1 text-[#908fa0] hover:text-[#dfe2ee]"
+          >
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+      )}
+
       {/* Right Controls: Attention Indicator & Multi-user Profile Switcher */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Mobile Search Icon Toggle */}
+        <button
+          onClick={() => setShowMobileSearch(true)}
+          className="lg:hidden w-9 h-9 rounded-lg bg-[#1c2028] text-[#c7c4d7] flex items-center justify-center border border-[#262a33]"
+          title="검색 열기"
+        >
+          <span className="material-symbols-outlined text-[18px]">search</span>
+        </button>
         {/* Attention Action Dropdown */}
         <div className="relative">
           <button
@@ -164,6 +212,30 @@ export const Header: React.FC<HeaderProps> = ({
                     )}
                   </button>
                 ))}
+              </div>
+
+              <div className="pt-2 border-t border-[#262a33] flex flex-col gap-1">
+                <button
+                  onClick={() => {
+                    onNavigateTab('user-management');
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs text-[#c7c4d7] hover:bg-[#262a33] hover:text-[#dfe2ee] transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px] text-[#4cd7f6]">group</span>
+                  <span>사용자 및 권한 관리 (IAM)</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onNavigateTab('login');
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs text-[#ffb4ab] hover:bg-[#262a33] transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px]">logout</span>
+                  <span>로그아웃 / SSO 로그인 화면</span>
+                </button>
               </div>
             </div>
           )}

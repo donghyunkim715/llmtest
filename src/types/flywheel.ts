@@ -132,3 +132,39 @@ export interface AttentionItem {
   actionText: string;
   targetView: string;
 }
+
+export type AccountStatus = 'ACTIVE' | 'PENDING' | 'SUSPENDED';
+export type MfaStatusType = 'FIDO2' | 'TOTP' | 'NONE';
+
+export interface ManagedUser {
+  id: string;
+  name: string;
+  email: string;
+  initials: string;
+  avatarBg?: string;
+  avatarTextColor?: string;
+  role: 'ADMIN' | 'DEVELOPER' | 'APPROVER' | 'LABELER' | 'GUEST';
+  team: string;
+  weeklyPerformance: string;
+  weeklyPerformanceSub?: string;
+  mfaType: MfaStatusType;
+  mfaLabel: string;
+  lastActive: string;
+  ipAddress: string;
+  status: AccountStatus;
+  statusLabel: string;
+  isKeyMaster?: boolean;
+}
+
+export interface GovernanceAuditLog {
+  id: string;
+  timestamp: string;
+  actorName: string;
+  actorEmail: string;
+  action: string;
+  targetUser: string;
+  detail: string;
+  ticketNumber: string;
+  hash: string;
+}
+

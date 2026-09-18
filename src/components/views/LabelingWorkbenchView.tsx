@@ -1186,8 +1186,8 @@ export const LabelingWorkbenchView: React.FC<LabelingWorkbenchProps> = ({
 
       {/* Semantic Diff Modal (Pairwise Comparison) */}
       {isDiffModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#181c24] border border-[#262a33] rounded-2xl max-w-5xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-[#181c24] border-t sm:border border-[#262a33] rounded-t-2xl sm:rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-150">
             <div className="p-4 border-b border-[#262a33] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[#4cd7f6]">difference</span>
@@ -1268,8 +1268,8 @@ export const LabelingWorkbenchView: React.FC<LabelingWorkbenchProps> = ({
 
       {/* Payload Editor Modal */}
       {isPayloadEditorOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#181c24] border border-[#262a33] rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-[#181c24] border-t sm:border border-[#262a33] rounded-t-2xl sm:rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-150">
             <div className="p-4 border-b border-[#262a33] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[#4cd7f6]">edit_note</span>
@@ -1280,6 +1280,7 @@ export const LabelingWorkbenchView: React.FC<LabelingWorkbenchProps> = ({
               <button
                 onClick={() => setIsPayloadEditorOpen(false)}
                 className="p-1 rounded-lg hover:bg-[#262a33] text-[#908fa0] hover:text-[#dfe2ee]"
+                type="button"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
@@ -1289,7 +1290,7 @@ export const LabelingWorkbenchView: React.FC<LabelingWorkbenchProps> = ({
                 기존 모델의 출력에 누락된 파라미터를 추가하거나 올바른 함수명을 직접 수정하세요. 저장 시 SFT/DPO 정답으로 등록됩니다.
               </p>
               <textarea
-                rows={14}
+                rows={12}
                 value={customPayload}
                 onChange={(e) => setCustomPayload(e.target.value)}
                 className="w-full bg-[#0a0e16] border border-[#262a33] rounded-xl p-3 font-mono text-xs text-[#dfe2ee] focus:outline-none focus:border-[#4cd7f6] transition-colors leading-relaxed resize-none"
@@ -1298,7 +1299,8 @@ export const LabelingWorkbenchView: React.FC<LabelingWorkbenchProps> = ({
             <div className="p-4 border-t border-[#262a33] flex items-center justify-end gap-2 bg-[#141820]">
               <button
                 onClick={() => setIsPayloadEditorOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-mono text-[#dfe2ee] hover:bg-[#262a33]"
+                className="min-h-[40px] px-4 py-2 rounded-xl text-xs font-mono text-[#dfe2ee] hover:bg-[#262a33]"
+                type="button"
               >
                 취소
               </button>
@@ -1308,7 +1310,8 @@ export const LabelingWorkbenchView: React.FC<LabelingWorkbenchProps> = ({
                   setIsPayloadEditorOpen(false);
                   showToast('교정된 정답 페이로드가 저장되었습니다.');
                 }}
-                className="px-4 py-2 bg-[#4cd7f6] text-[#001f26] rounded-xl font-mono text-xs font-bold shadow"
+                className="min-h-[40px] px-5 py-2 bg-[#4cd7f6] hover:bg-[#38c9ea] text-[#001f26] rounded-xl font-mono text-xs font-bold shadow active:scale-95 transition-transform"
+                type="button"
               >
                 교정 완료 및 적용
               </button>
@@ -1316,6 +1319,22 @@ export const LabelingWorkbenchView: React.FC<LabelingWorkbenchProps> = ({
           </div>
         </div>
       )}
+
+      {/* Sticky Mobile Quick Action Bar */}
+      <div className="fixed lg:hidden bottom-14 left-0 right-0 p-3 bg-[#10141d]/95 backdrop-blur border-t border-[#262a33] z-40 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="font-mono text-xs text-[#4cd7f6] font-bold truncate">후보 [{selectedCandidateId}]</span>
+          <span className="text-[0.6875rem] text-[#908fa0] uppercase truncate">({actionVerdict})</span>
+        </div>
+        <button
+          onClick={handleCommitNext}
+          className="min-h-[44px] px-5 rounded-xl bg-[#4cd7f6] hover:bg-[#38c9ea] text-[#001f26] font-mono text-xs font-bold flex items-center gap-1.5 shadow-lg active:scale-95 transition-transform shrink-0"
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[18px]">task_alt</span>
+          <span>판정 저장 & 다음</span>
+        </button>
+      </div>
     </div>
   );
 };
