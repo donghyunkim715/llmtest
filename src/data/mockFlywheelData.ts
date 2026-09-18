@@ -1,0 +1,630 @@
+import { StageRecord, BatchManifest, UserProfile, AttentionItem } from '../types/flywheel';
+
+export const INITIAL_USERS: UserProfile[] = [
+  {
+    id: 'usr-001',
+    name: 'Dr. Elena Vance',
+    role: 'approver',
+    title: 'Lead Alignment Ops',
+    email: 'elena.vance@42dot.ai',
+    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+  },
+  {
+    id: 'usr-002',
+    name: '김민수 (Min-su Kim)',
+    role: 'labeler',
+    title: 'Senior Alignment Evaluator',
+    email: 'minsu.kim@42dot.ai',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  },
+  {
+    id: 'usr-003',
+    name: '박지훈 (Ji-hoon Park)',
+    role: 'developer',
+    title: 'ML Distillation Engineer',
+    email: 'jihoon.park@42dot.ai',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+  },
+  {
+    id: 'usr-004',
+    name: '최현우 (Hyun-woo Choi)',
+    role: 'admin',
+    title: 'Flywheel Platform Lead',
+    email: 'hyunwoo.choi@42dot.ai',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+  },
+];
+
+export const INITIAL_RECORDS: StageRecord[] = [
+  {
+    id: 'REC-89021',
+    hash: '#9d2a4f',
+    carModel: 'Genesis GV80',
+    clientVersion: 'Client: v3.2',
+    systemPrompt:
+      'Genesis In-Cabin Core Agent Rules v4.8 (Tool Calling Enabled)\nYou are Genesis AI vehicle controller. Parse concurrent intents (HVAC + Navigation). Produce deterministic JSON tool calling array. Never omit sub-parameters.',
+    priorTurns: [
+      { role: 'user', text: '오늘 고속도로 통행료 얼마 나왔어?' },
+      { role: 'assistant', text: '오늘 누적 하이패스 통행료는 4,800원입니다.' },
+    ],
+    currentTargetQuery: '“에어컨 22도로 맞추고 <POI_NAME>판교 현대백화점</POI_NAME> 경로 안내해줘”',
+    stage: 'Planner',
+    category: 'Navigation & HVAC',
+    insightType: 'student_gap',
+    insightLabel: 'Insight: Student Gap (Critical)',
+    blockingFlags: 0,
+    intentDensity: '2 (Dual Tool)',
+    agreementRate: '2/4 (50%)',
+    runId: 'run-2025-03-w1',
+    batchId: 'bch-202503a',
+    candidates: [
+      {
+        id: 'A',
+        label: 'Candidate A',
+        modelName: 'Production (Real)',
+        modelRole: 'production',
+        latencyMs: 410,
+        tokens: 312,
+        judgeScore: 88,
+        schemaStatus: 'valid',
+        explanation: '정상 실행되었으나 탑승자 좌석 구분이 없어 1열 전체 동기화로 동작함.',
+        outputJson: JSON.stringify(
+          [
+            {
+              tool: 'set_air_conditioner',
+              args: {
+                temperature: 22,
+                mode: 'auto',
+              },
+            },
+            {
+              tool: 'navigate_to',
+              args: {
+                poi_name: '판교 현대백화점',
+                route_preference: 'fastest',
+              },
+            },
+          ],
+          null,
+          2
+        ),
+      },
+      {
+        id: 'B',
+        label: 'Candidate B',
+        modelName: 'Distill v1.2',
+        modelRole: 'student',
+        latencyMs: 124,
+        tokens: 184,
+        judgeScore: 34,
+        schemaStatus: 'invalid',
+        validationErrorNote: "SCHEMA_VALIDATION_ERROR: Missing required field 'seat' and dropped second intent (navigate_to)",
+        explanation: '단일 명령만 처리하고 네비게이션 호출 누락됨 (Multi-intent Distillation 실패).',
+        outputJson: `[
+  {
+    "tool": "set_air_conditioner",
+    "args": {
+      "temperature": 22
+      // Missing required field 'target_zone'
+    }
+  }
+  // Dropped second intent (navigate_to)!
+]`,
+      },
+      {
+        id: 'C',
+        label: 'Candidate C',
+        modelName: 'Sonnet 3.5',
+        modelRole: 'teacher1',
+        latencyMs: 820,
+        tokens: 420,
+        judgeScore: 98,
+        schemaStatus: 'valid',
+        isRecommended: true,
+        explanation: '완벽한 온/습도 존 제어 및 목적지 카테고리 태깅 포함. 표준 스키마 완전 준수.',
+        outputJson: JSON.stringify(
+          [
+            {
+              tool: 'climate.set_temperature',
+              args: {
+                target_temp_celsius: 22.0,
+                target_zone: 'all',
+                auto_defrost: false,
+              },
+            },
+            {
+              tool: 'navigation.set_destination',
+              args: {
+                query: '판교 현대백화점',
+                search_category: 'department_store',
+                routing_mode: 'recommended',
+              },
+            },
+          ],
+          null,
+          2
+        ),
+      },
+      {
+        id: 'D',
+        label: 'Candidate D',
+        modelName: 'GPT-4o',
+        modelRole: 'teacher2',
+        latencyMs: 690,
+        tokens: 395,
+        judgeScore: 96,
+        schemaStatus: 'valid',
+        explanation: '유효한 Tool Call이나 목적지 검색 메타데이터가 Sonnet에 비해 다소 간략함.',
+        outputJson: JSON.stringify(
+          [
+            {
+              tool: 'climate.set_temperature',
+              args: {
+                target_temp_celsius: 22.0,
+                target_zone: 'driver_and_passenger',
+              },
+            },
+            {
+              tool: 'navigation.route_to_poi',
+              args: {
+                keyword: '판교 현대백화점',
+              },
+            },
+          ],
+          null,
+          2
+        ),
+      },
+    ],
+    reviewDecision: {
+      selectedCandidateId: 'C',
+      action: 'adopt',
+      rationale:
+        '학생 모델(Distill v1.2)은 멀티인텐트(공조+내비) 결합 시 네비게이션 Tool Call을 아예 누락함. 좌석 파라미터 및 POI 명확화를 위해 Claude 3.5 Sonnet(후보 C)의 Tool Call 구조를 Ground-Truth 정답으로 승인함.',
+      reviewerId: 'usr-002',
+      reviewerName: '김민수 (Min-su Kim)',
+      reviewedAt: '2025-03-08 14:22',
+    },
+  },
+  {
+    id: 'REC-89022',
+    hash: '#a1e43c',
+    carModel: 'Genesis G90',
+    clientVersion: 'Client: v3.2',
+    systemPrompt:
+      'Vehicle Window & Body Control Node v3.1\nDetect percentage or step-down requests and bind to hardware slot driver/passenger/rear.',
+    priorTurns: [
+      { role: 'user', text: '환기 좀 시키고 싶은데' },
+      { role: 'assistant', text: '공기 청정 모드를 켤까요, 아니면 창문을 조금 열까요?' },
+    ],
+    currentTargetQuery: '“운전석 창문 살짝만 3cm 열어줘”',
+    stage: 'Planner',
+    category: 'Vehicle Control',
+    insightType: 'student_gap',
+    insightLabel: 'Insight: Planner Bottleneck (148건 병목)',
+    blockingFlags: 0,
+    intentDensity: '1 (Window Step)',
+    agreementRate: '3/4 (75%)',
+    runId: 'run-2025-03-w1',
+    batchId: 'bch-202503a',
+    candidates: [
+      {
+        id: 'A',
+        label: 'Candidate A',
+        modelName: 'Production (Real)',
+        modelRole: 'production',
+        latencyMs: 380,
+        tokens: 190,
+        judgeScore: 90,
+        schemaStatus: 'valid',
+        explanation: '운전석 창문 10% 개방으로 변환됨.',
+        outputJson: JSON.stringify(
+          [
+            {
+              tool: 'body.control_window',
+              args: { target_window: 'driver', position_percent: 10 },
+            },
+          ],
+          null,
+          2
+        ),
+      },
+      {
+        id: 'B',
+        label: 'Candidate B',
+        modelName: 'Distill v1.2',
+        modelRole: 'student',
+        latencyMs: 98,
+        tokens: 140,
+        judgeScore: 42,
+        schemaStatus: 'invalid',
+        validationErrorNote: "Invalid enum value 'open_slightly' for position",
+        explanation: '숫자/퍼센트 정규화 실패 및 임의 문자열 인자 생성.',
+        outputJson: `[
+  {
+    "tool": "body.control_window",
+    "args": {
+      "target_window": "front_left",
+      "position": "open_slightly" // Schema mismatch
+    }
+  }
+]`,
+      },
+      {
+        id: 'C',
+        label: 'Candidate C',
+        modelName: 'Sonnet 3.5',
+        modelRole: 'teacher1',
+        latencyMs: 710,
+        tokens: 280,
+        judgeScore: 99,
+        schemaStatus: 'valid',
+        isRecommended: true,
+        explanation: '3cm 갭을 물리 모터 펄스 12%로 정밀 매핑하고 핀치 방지 플래그 적용.',
+        outputJson: JSON.stringify(
+          [
+            {
+              tool: 'vehicle.window.set_position',
+              args: {
+                zone: 'driver',
+                open_percentage: 12,
+                ventilation_mode: true,
+              },
+            },
+          ],
+          null,
+          2
+        ),
+      },
+      {
+        id: 'D',
+        label: 'Candidate D',
+        modelName: 'GPT-4o',
+        modelRole: 'teacher2',
+        latencyMs: 640,
+        tokens: 250,
+        judgeScore: 95,
+        schemaStatus: 'valid',
+        explanation: '정상 윈도우 조작 스키마 생성.',
+        outputJson: JSON.stringify(
+          [
+            {
+              tool: 'vehicle.window.set_position',
+              args: {
+                zone: 'driver',
+                open_percentage: 15,
+              },
+            },
+          ],
+          null,
+          2
+        ),
+      },
+    ],
+  },
+  {
+    id: 'REC-89023',
+    hash: '#c4892b',
+    carModel: 'Genesis GV70',
+    clientVersion: 'Client: v3.1',
+    systemPrompt:
+      'In-Cabin Intent Classifier & Router v2.4\nRoute user voice query into core domains: Navigation, Media, VehicleControl, Weather, GeneralChat.',
+    priorTurns: [],
+    currentTargetQuery: '“성수동 힙한 카페 어디 있어?”',
+    stage: 'Router',
+    category: 'Navigation',
+    insightType: 'label_suspect',
+    insightLabel: 'Ground Truth Drift (Label Suspect 89건)',
+    blockingFlags: 0,
+    intentDensity: '1 (POI Search)',
+    agreementRate: '3/4 (75%)',
+    runId: 'run-2025-03-w1',
+    batchId: 'bch-202503a',
+    candidates: [
+      {
+        id: 'A',
+        label: 'Candidate A',
+        modelName: 'Production (Real)',
+        modelRole: 'production',
+        latencyMs: 290,
+        tokens: 80,
+        judgeScore: 65,
+        schemaStatus: 'warning',
+        explanation: '기존 라벨은 단순 일반 잡담(GeneralChat)으로 잘못 분류되어 있었음.',
+        outputJson: JSON.stringify({ route: 'general_chat', confidence: 0.62 }, null, 2),
+      },
+      {
+        id: 'B',
+        label: 'Candidate B',
+        modelName: 'Distill v1.2',
+        modelRole: 'student',
+        latencyMs: 70,
+        tokens: 75,
+        judgeScore: 92,
+        schemaStatus: 'valid',
+        explanation: '목적지 탐색으로 올바르게 라우팅함.',
+        outputJson: JSON.stringify({ route: 'navigation.poi_search', category: 'cafe', region: '성수동' }, null, 2),
+      },
+      {
+        id: 'C',
+        label: 'Candidate C',
+        modelName: 'Sonnet 3.5',
+        modelRole: 'teacher1',
+        latencyMs: 480,
+        tokens: 120,
+        judgeScore: 99,
+        schemaStatus: 'valid',
+        isRecommended: true,
+        explanation: '지역 필터 및 키워드 추출과 함께 네비게이션 목적지 검색 도메인으로 정확히 판단.',
+        outputJson: JSON.stringify({ route: 'navigation.poi_search', category: 'cafe', query: '성수동 힙한 카페' }, null, 2),
+      },
+      {
+        id: 'D',
+        label: 'Candidate D',
+        modelName: 'GPT-4o',
+        modelRole: 'teacher2',
+        latencyMs: 410,
+        tokens: 110,
+        judgeScore: 97,
+        schemaStatus: 'valid',
+        explanation: '네비게이션 라우트 추천.',
+        outputJson: JSON.stringify({ route: 'navigation.poi_search', subcategory: 'cafe_bakery' }, null, 2),
+      },
+    ],
+  },
+  {
+    id: 'REC-89024',
+    hash: '#f5901e',
+    carModel: 'Genesis G80 EV',
+    clientVersion: 'Client: v3.2',
+    systemPrompt:
+      'Natural Language Response Generation (Respgen v3.0)\nSynthesize concise, safe, driving-friendly voice responses.',
+    priorTurns: [
+      { role: 'user', text: '배터리 25% 남았는데 집까지 갈 수 있어?' },
+      { role: 'assistant', text: '현재 남은 주행 가능 거리는 82km이며, 집까지는 64km로 충전 없이 도착 가능합니다.' },
+    ],
+    currentTargetQuery: '“도착지 근처 충전소도 미리 예약해줘”',
+    stage: 'Respgen',
+    category: 'Vehicle Control',
+    insightType: 'teacher_split',
+    insightLabel: 'Policy Ambiguity (Teacher Split 154건)',
+    blockingFlags: 0,
+    intentDensity: '1 (EV Reserve)',
+    agreementRate: '2/4 (50%)',
+    runId: 'run-2025-03-w1',
+    batchId: 'bch-202503a',
+    candidates: [
+      {
+        id: 'A',
+        label: 'Candidate A',
+        modelName: 'Production (Real)',
+        modelRole: 'production',
+        latencyMs: 510,
+        tokens: 110,
+        judgeScore: 82,
+        schemaStatus: 'valid',
+        explanation: '예약 지원 여부 정책 확인 없이 바로 예약 프로세스를 시작하겠다고 응답함.',
+        outputJson: '"도착지 반경 2km 이내의 초급속 충전소 2곳을 찾았습니다. 예약을 진행할까요?"',
+      },
+      {
+        id: 'B',
+        label: 'Candidate B',
+        modelName: 'Distill v1.2',
+        modelRole: 'student',
+        latencyMs: 140,
+        tokens: 95,
+        judgeScore: 78,
+        schemaStatus: 'valid',
+        explanation: '단순 안내 문장 출력.',
+        outputJson: '"목적지 인근 충전소 예약을 조회합니다."',
+      },
+      {
+        id: 'C',
+        label: 'Candidate C',
+        modelName: 'Sonnet 3.5',
+        modelRole: 'teacher1',
+        latencyMs: 780,
+        tokens: 160,
+        judgeScore: 97,
+        schemaStatus: 'valid',
+        isRecommended: true,
+        explanation: '현대차 E-pit 회원 연동 여부를 체크하고 안전 운행 안내 결합.',
+        outputJson: '"도착지 인근 E-pit 판교 충전소의 사용 가능한 충전기 3기를 확인했습니다. 운전 중 간편 인증으로 예약을 확정할까요?"',
+      },
+      {
+        id: 'D',
+        label: 'Candidate D',
+        modelName: 'GPT-4o',
+        modelRole: 'teacher2',
+        latencyMs: 700,
+        tokens: 145,
+        judgeScore: 93,
+        schemaStatus: 'valid',
+        explanation: '교사 간 안내 정책 차이 (Sonnet은 회원 연동 선확인, GPT는 즉시 1순위 충전소 예약 시도).',
+        outputJson: '"목적지 근처 판교역 공영 충전소에 도착 예상 시간에 맞춰 100kW 급속 충전기를 예약 대기 상태로 등록했습니다."',
+      },
+    ],
+  },
+  {
+    id: 'REC-89025',
+    hash: '#77e01a',
+    carModel: 'Genesis GV60',
+    clientVersion: 'Client: v3.2',
+    systemPrompt: 'Media Streamer Copilot v2.1\nSearch tracks, artists, and playlists. Filter explicit PII.',
+    priorTurns: [],
+    currentTargetQuery: '“<PERSON_NAME>뉴진스</PERSON_NAME> 신곡 <MUSIC_TITLE>How Sweet</MUSIC_TITLE> 틀어줘”',
+    stage: 'Planner',
+    category: 'Media / Audio',
+    insightType: 'data_quality',
+    insightLabel: 'PII Over-Redaction (과잉 마스킹 44건)',
+    blockingFlags: 1,
+    intentDensity: '1 (Music Play)',
+    agreementRate: '1/4 (25%)',
+    runId: 'run-2025-03-w1',
+    batchId: 'bch-202503a',
+    candidates: [
+      {
+        id: 'A',
+        label: 'Candidate A',
+        modelName: 'Production (Real)',
+        modelRole: 'production',
+        latencyMs: 340,
+        tokens: 130,
+        judgeScore: 40,
+        schemaStatus: 'invalid',
+        validationErrorNote: 'PII Over-redaction caused artist parameter loss',
+        explanation: '아티스트 명칭이 개인정보로 오탐 마스킹되어 빈 문자열 곡 검색 실행 실패.',
+        outputJson: JSON.stringify(
+          [{ tool: 'media.play_track', args: { query: '신곡 틀어줘', artist: '' } }],
+          null,
+          2
+        ),
+      },
+      {
+        id: 'B',
+        label: 'Candidate B',
+        modelName: 'Distill v1.2',
+        modelRole: 'student',
+        latencyMs: 110,
+        tokens: 90,
+        judgeScore: 35,
+        schemaStatus: 'invalid',
+        explanation: '마스킹 토큰 처리 불가로 에러 발생.',
+        outputJson: `[
+  {
+    "tool": "media.play_track",
+    "args": {
+      "error": "UNKNOWN_TAG_<PERSON_NAME>"
+    }
+  }
+]`,
+      },
+      {
+        id: 'C',
+        label: 'Candidate C',
+        modelName: 'Sonnet 3.5',
+        modelRole: 'teacher1',
+        latencyMs: 690,
+        tokens: 220,
+        judgeScore: 98,
+        schemaStatus: 'valid',
+        isRecommended: true,
+        explanation: '마스킹 태그 내 고유명사를 적법 컨텍스트로 보정하여 올바른 음악 재생 툴 콜 복원.',
+        outputJson: JSON.stringify(
+          [{ tool: 'media.play_track', args: { artist: 'NewJeans', title: 'How Sweet', streaming_service: 'melon' } }],
+          null,
+          2
+        ),
+      },
+      {
+        id: 'D',
+        label: 'Candidate D',
+        modelName: 'GPT-4o',
+        modelRole: 'teacher2',
+        latencyMs: 610,
+        tokens: 190,
+        judgeScore: 95,
+        schemaStatus: 'valid',
+        explanation: '멜론 검색 툴 콜 정상 발화.',
+        outputJson: JSON.stringify(
+          [{ tool: 'media.play_track', args: { search_keyword: '뉴진스 How Sweet' } }],
+          null,
+          2
+        ),
+      },
+    ],
+  },
+];
+
+export const INITIAL_BATCHES: BatchManifest[] = [
+  {
+    id: 'bch-202503a',
+    manifestUri: 's3://gleo-telemetry/2025-w11.manifest',
+    sourceCluster: 'AWS ap-northeast-2 (Seoul)',
+    recordVolume: 142000,
+    checksumStatus: 'SHA-256 VERIFIED',
+    ingestState: 'Ready',
+    lastPolled: '12 seconds ago',
+  },
+  {
+    id: 'bch-202503b',
+    manifestUri: 's3://gleo-telemetry/2025-w10-patch.manifest',
+    sourceCluster: 'GCP asia-northeast3',
+    recordVolume: 45210,
+    checksumStatus: 'MD5 MATCH',
+    ingestState: 'Completed',
+    lastPolled: '2 hours ago',
+  },
+  {
+    id: 'bch-202503c',
+    manifestUri: 's3://gleo-telemetry/2025-w10-quarantine.manifest',
+    sourceCluster: 'On-prem Hive-02',
+    recordVolume: 1280,
+    checksumStatus: 'SCHEMA FAIL',
+    ingestState: 'Quarantined',
+    lastPolled: '5 hours ago',
+  },
+];
+
+export const ATTENTION_ITEMS: AttentionItem[] = [
+  {
+    id: 'att-1',
+    type: 'CRITICAL',
+    badgeColor: 'bg-error-container text-on-error-container',
+    age: '3h age',
+    count: 2,
+    title: 'Failed Runs',
+    subtitle: 'r-202503-491, -488',
+    description: 'OOM on node worker-k8-04 during Teacher-v2 eval batch.',
+    actionText: '재시도 / 로그',
+    targetView: 'pipeline-runs',
+  },
+  {
+    id: 'att-2',
+    type: 'STALLED',
+    badgeColor: 'bg-surface-container-highest text-secondary',
+    age: '45m silent',
+    count: 1,
+    title: 'Stalled Run',
+    subtitle: 'run-s3-ingest-b4',
+    description: 'Heartbeat expired at 92.4% during manifest decompression.',
+    actionText: '강제 재기동',
+    targetView: 'pipeline-runs',
+  },
+  {
+    id: 'att-3',
+    type: 'QUARANTINE',
+    badgeColor: 'bg-surface-container-highest text-error',
+    age: 'Batch w11',
+    count: 48,
+    title: 'Suspicious',
+    subtitle: '<ADDRESS> Over-masking',
+    description: 'Aggressive regex wiped harmless Korean postal substrings.',
+    actionText: '격리 레코드 확인',
+    targetView: 'insights',
+  },
+  {
+    id: 'att-4',
+    type: 'APPROVAL',
+    badgeColor: 'bg-primary-container text-on-primary-container',
+    age: '92.4% QA',
+    count: 142,
+    title: '2nd Review',
+    subtitle: '1st Pass Confirmed',
+    description: 'Awaiting Lead Evaluator final validation sign-off.',
+    actionText: '대기열 일괄 승인',
+    targetView: 'reviews-approval',
+  },
+  {
+    id: 'att-5',
+    type: 'REJECTED',
+    badgeColor: 'bg-surface-container-highest text-error',
+    age: 'Action Req',
+    count: 18,
+    title: 'Rejections',
+    subtitle: 'Taxonomy Mismatch',
+    description: 'Returned by Tier-2 approvers due to rubric ambiguity.',
+    actionText: '반려 사유 재작업',
+    targetView: 'reviews-labeling',
+  },
+];

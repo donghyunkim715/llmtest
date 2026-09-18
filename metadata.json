@@ -1,0 +1,6 @@
+{
+  "name": "Gleo Data Flywheel Engine",
+  "description": "실운영 LLM 로그 기반 다중 모델 비교 평가, 1차 라벨링·2차 승인 및 인사이트 분석 전사 플랫폼",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
